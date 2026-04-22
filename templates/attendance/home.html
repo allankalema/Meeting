@@ -21,6 +21,7 @@
                     {% if request.user.is_authenticated %}
                         <a href="{% url 'attendance:dashboard' %}" class="btn-accent">Open Dashboard</a>
                     {% else %}
+                        <a href="{% url 'attendance:public-event-list' %}" class="btn-secondary">Browse Events</a>
                         <a href="{% url 'attendance:login' %}" class="btn-accent">Organizer Login</a>
                     {% endif %}
                 </div>

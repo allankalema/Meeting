@@ -1,0 +1,50 @@
+{% extends "attendance/base.html" %}
+{% load static %}
+{% block title %}Events | Kampala Early Bird{% endblock %}
+{% block content %}
+<section class="space-y-5">
+    <div class="card overflow-hidden border-rotary-blue/20 p-0">
+        <div class="bg-gradient-to-r from-rotary-blue to-rotary-blue-700 px-5 py-6 text-white sm:px-7">
+            <div class="flex items-center gap-3">
+                <img src="{% static 'logo.jpg' %}" alt="Kampala Early Bird Rotary Club logo" class="h-12 w-12 rounded-full border border-white/40 object-cover">
+                <div>
+                    <p class="text-xs uppercase tracking-[0.2em] text-rotary-gold">Kampala Early Bird</p>
+                    <h1 class="text-xl font-bold sm:text-2xl">Active Events</h1>
+                </div>
+            </div>
+            <p class="mt-3 text-sm text-white/90">Pick an active event below and continue to the registration form.</p>
+        </div>
+        <div class="px-5 py-4 sm:px-7">
+            <form method="get" class="grid gap-3 sm:grid-cols-[1fr,auto]">
+                <input name="q" value="{{ q }}" class="input-field mt-0" placeholder="Search by title, venue, or note">
+                <button class="btn-primary" type="submit">Search</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+        {% for event in events %}
+            <a href="{% url 'attendance:event-public' public_id=event.public_id %}" class="card block border-gray-200 transition duration-200 hover:-translate-y-0.5 hover:shadow-lg">
+                <div class="flex items-start justify-between gap-3">
+                    <h2 class="text-lg font-semibold text-[#1F2937]">{{ event.title }}</h2>
+                    <span class="rounded-full bg-rotary-gold/20 px-2.5 py-1 text-[11px] font-semibold text-rotary-blue">Open</span>
+                </div>
+                <p class="mt-2 text-sm text-gray-600">{{ event.event_date|date:"D, d M Y - g:i A" }}</p>
+                {% if event.venue %}<p class="mt-1 text-sm text-gray-600">{{ event.venue }}</p>{% endif %}
+                {% if event.description %}<p class="mt-3 line-clamp-3 text-sm text-gray-600">{{ event.description }}</p>{% endif %}
+                <p class="mt-4 inline-flex w-fit items-center gap-2 rounded-xl border border-rotary-blue px-3 py-1.5 text-sm font-semibold text-rotary-blue">
+                    <span>Open registration</span>
+                    <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17 17 7"/><path d="M7 7h10v10"/></svg>
+                </p>
+            </a>
+        {% empty %}
+            <div class="card sm:col-span-2 xl:col-span-3">
+                <div class="rounded-xl border border-dashed border-gray-300 bg-[#F8F9FB] p-8 text-center">
+                    <p class="text-base font-semibold text-[#1F2937]">No active events right now</p>
+                    <p class="mt-2 text-sm text-gray-600">Please check again later for new meeting registrations.</p>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+</section>
+{% endblock %}

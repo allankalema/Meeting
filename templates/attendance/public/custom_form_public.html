@@ -35,7 +35,9 @@
             <div id="lookup-message" class="hidden rounded-xl px-4 py-3 text-sm"></div>
             {% for field in runtime_form %}
                 <div>
-                    <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
+                    <label for="{{ field.id_for_label }}" class="form-label">
+                        {{ field.label }}{% if field.field.required %}<span class="text-rose-600"> *</span>{% endif %}
+                    </label>
                     {{ field }}
                     {% for error in field.errors %}<p class="mt-1 text-xs text-rotary-blue">{{ error }}</p>{% endfor %}
                 </div>

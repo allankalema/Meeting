@@ -11,6 +11,7 @@ from .views import (
     EventCreateView,
     EventDetailView,
     EventListView,
+    PublicEventListView,
     EventLookupView,
     CustomFormLookupView,
     EventWizardView,
@@ -31,6 +32,7 @@ app_name = "attendance"
 
 urlpatterns = [
     path("", HomeView.as_view(), name="home"),
+    path("events/", PublicEventListView.as_view(), name="public-event-list"),
     path("login/", UserLoginView.as_view(), name="login"),
     path("logout/", UserLogoutView.as_view(), name="logout"),
     path("dashboard/", DashboardView.as_view(), name="dashboard"),

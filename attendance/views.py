@@ -125,6 +125,28 @@ class HomeView(TemplateView):
     template_name = "attendance/home.html"
 
 
+class PublicEventListView(ListView):
+    model = Event
+    template_name = "attendance/public/event_list.html"
+    context_object_name = "events"
+
+    def get_queryset(self):
+        qs = Event.objects.filter(is_link_active=True).order_by("event_date")
+        q = self.request.GET.get("q", "").strip()
+        if q:
+            qs = qs.filter(
+                Q(title__icontains=q)
+                | Q(description__icontains=q)
+                | Q(venue__icontains=q)
+            )
+        return qs
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["q"] = self.request.GET.get("q", "")
+        return context
+
+
 class UserLoginView(LoginView):
     template_name = "attendance/auth/login.html"
     redirect_authenticated_user = True

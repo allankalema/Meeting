@@ -12,7 +12,7 @@
             <div class="flex flex-wrap gap-2">
                 <form method="post" action="{% url 'attendance:custom-form-toggle' public_id=custom_form.public_id %}">
                     {% csrf_token %}
-                    <button class="btn-secondary" data-confirm="true" data-confirm-message="Are you sure you want to {% if custom_form.is_active %}deactivate{% else %}activate{% endif %} this form?">
+                    <button class="btn-secondary" data-confirm="true" data-confirm-message="Are you sure you want to {% if custom_form.is_active %}deactivate{% else %}activate{% endif %} this event form?">
                         {% if custom_form.is_active %}Deactivate{% else %}Activate{% endif %}
                     </button>
                 </form>
@@ -20,7 +20,7 @@
                     {% csrf_token %}
                     <button class="btn-accent" {% if not custom_form.is_active %}disabled{% endif %}
                         data-confirm="true"
-                        data-confirm-message="Are you sure you want to send invitations to {{ recipient_count }} consented emails?"
+                        data-confirm-message="Are you sure you want to send invitations to {{ recipient_count }} emails?"
                         data-loading>
                         Send Invitations
                     </button>
@@ -32,7 +32,7 @@
     <div class="grid gap-6 lg:grid-cols-2">
         <div class="card">
             <div class="flex items-center justify-between">
-                <h2 class="text-lg font-semibold text-[#1F2937]">Step-by-step field builder</h2>
+                <h2 class="text-lg font-semibold text-[#1F2937]">Step-by-step event field builder</h2>
                 <button type="button" class="btn-secondary text-xs px-3 py-2 md:hidden" data-preview-toggle>Preview</button>
             </div>
             <p class="mt-1 text-xs text-gray-500">Tip: For Text type, leave options empty. Options are only needed for Select fields.</p>
@@ -57,8 +57,8 @@
             </form>
         </div>
 
-        <div class="card" id="detail-preview-panel">
-            <h2 class="text-lg font-semibold text-[#1F2937]">Form preview</h2>
+        <div class="card hidden md:block" id="detail-preview-panel">
+            <h2 class="text-lg font-semibold text-[#1F2937]">Event form preview</h2>
             <div class="mt-4 space-y-3">
                 <div>
                     <label class="form-label">Email</label>
@@ -81,7 +81,7 @@
     </div>
 
     <div class="card">
-        <h2 class="text-lg font-semibold text-[#1F2937]">Recent submissions</h2>
+        <h2 class="text-lg font-semibold text-[#1F2937]">Recent event submissions</h2>
         <div class="mt-4 space-y-3">
             {% for sub in submissions %}
                 <div class="rounded-xl border border-gray-200 px-4 py-3">
@@ -96,19 +96,64 @@
     </div>
 </section>
 
+<div id="mobile-preview-sheet" class="fixed inset-0 z-50 hidden md:hidden">
+    <button type="button" class="absolute inset-0 bg-black/50" aria-label="Close preview" data-preview-close></button>
+    <div id="mobile-preview-panel" class="absolute inset-x-0 bottom-0 h-[92vh] translate-y-full rounded-t-3xl bg-white p-4 shadow-2xl transition duration-300 ease-out">
+        <div class="mx-auto mb-3 h-1.5 w-12 rounded-full bg-gray-300"></div>
+        <div class="flex items-center justify-between">
+            <h2 class="text-lg font-semibold text-[#1F2937]">Event form preview</h2>
+            <button type="button" class="btn-secondary px-3 py-2 text-xs" data-preview-close>Close</button>
+        </div>
+        <div class="mt-4 h-[calc(92vh-6.5rem)] space-y-3 overflow-y-auto pr-1">
+            <div>
+                <label class="form-label">Email</label>
+                <input class="input-field" disabled>
+            </div>
+            <div>
+                <label class="form-label">Contact</label>
+                <input class="input-field" disabled>
+            </div>
+            {% for field in custom_form.fields.all %}
+                <div class="rounded-xl border border-gray-200 p-3">
+                    <p class="font-semibold text-sm text-[#1F2937]">{{ field.label }}{% if field.required %} *{% endif %}</p>
+                    <p class="text-xs text-gray-500">{{ field.key }} - {{ field.get_field_type_display }}</p>
+                </div>
+            {% empty %}
+                <p class="text-sm text-gray-500">No fields yet. Add one and it appears here immediately.</p>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
 <script>
 (() => {
     const fieldType = document.getElementById("id_field_type");
     const optionsWrap = document.getElementById("detail-options-wrap");
     const previewToggle = document.querySelector("[data-preview-toggle]");
-    const previewPanel = document.getElementById("detail-preview-panel");
+    const mobileSheet = document.getElementById("mobile-preview-sheet");
+    const mobilePanel = document.getElementById("mobile-preview-panel");
+    const closeButtons = document.querySelectorAll("[data-preview-close]");
 
     function updateOptionsVisibility() {
         if (!fieldType || !optionsWrap) return;
         optionsWrap.classList.toggle("hidden", fieldType.value !== "select");
     }
+
+    function closePreview() {
+        if (!mobileSheet || !mobilePanel) return;
+        mobilePanel.classList.add("translate-y-full");
+        setTimeout(() => mobileSheet.classList.add("hidden"), 250);
+    }
+
+    function openPreview() {
+        if (!mobileSheet || !mobilePanel) return;
+        mobileSheet.classList.remove("hidden");
+        requestAnimationFrame(() => mobilePanel.classList.remove("translate-y-full"));
+    }
+
     fieldType?.addEventListener("change", updateOptionsVisibility);
-    previewToggle?.addEventListener("click", () => previewPanel.classList.toggle("hidden"));
+    previewToggle?.addEventListener("click", openPreview);
+    closeButtons.forEach((btn) => btn.addEventListener("click", closePreview));
     updateOptionsVisibility();
 })();
 </script>
