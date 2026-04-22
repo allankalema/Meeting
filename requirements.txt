@@ -1,4 +1,11 @@
-Django>=6.0,<6.1
-qrcode>=8.2
-python-dotenv>=1.0
-reportlab>=4.0
+asgiref==3.11.1
+charset-normalizer==3.4.7
+colorama==0.4.6
+Django==6.0.4
+dotenv==0.9.9
+pillow==12.2.0
+python-dotenv==1.2.2
+qrcode==8.2
+reportlab==4.4.10
+sqlparse==0.5.5
+tzdata==2026.1
