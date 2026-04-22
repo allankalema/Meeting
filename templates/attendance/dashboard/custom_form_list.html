@@ -1,29 +1,122 @@
 {% extends "attendance/base.html" %}
 {% block title %}Custom Forms{% endblock %}
+{% block breadcrumbs %}
+<nav class="mb-4" aria-label="Breadcrumb">
+    <ol class="flex flex-wrap items-center gap-2 text-sm text-gray-500">
+        <li><a href="{% url 'attendance:dashboard' %}" class="hover:text-rotary-blue">Dashboard</a></li>
+        <li aria-hidden="true">/</li>
+        <li class="font-medium text-rotary-blue">Custom Forms</li>
+    </ol>
+</nav>
+{% endblock %}
 {% block content %}
-<section class="space-y-5">
-    <div class="flex items-center justify-between">
-        <div>
-            <h1 class="text-2xl font-bold text-[#1F2937]">Custom Forms</h1>
-            <p class="text-sm text-gray-600">Build your own form structures and collect submissions.</p>
+<section class="space-y-6">
+    <div class="card border-rotary-blue/20 bg-gradient-to-r from-white to-rotary-gold/10 p-6 sm:p-7">
+        <div class="flex flex-wrap items-center justify-between gap-4">
+            <div>
+                <p class="text-xs font-semibold uppercase tracking-[0.2em] text-rotary-gold">Form Builder</p>
+                <h1 class="mt-1 text-2xl font-bold text-[#1F2937] sm:text-3xl">Custom Forms</h1>
+                <p class="mt-2 max-w-2xl text-sm text-gray-600">Create reusable form experiences for events, collect submissions, and manage availability in one place.</p>
+            </div>
+            <a href="{% url 'attendance:event-wizard' %}" class="btn-primary">Create Event</a>
         </div>
-        <a href="{% url 'attendance:custom-form-create' %}" class="btn-primary">Create Custom Form</a>
     </div>
-    <div class="space-y-3">
+
+    <div class="card p-4 sm:p-5">
+        <div class="grid gap-3 sm:grid-cols-3">
+            <div class="rounded-xl border border-gray-200 bg-white px-4 py-3">
+                <p class="text-xs uppercase tracking-wide text-gray-500">Total Forms</p>
+                <p class="mt-1 text-2xl font-bold text-rotary-blue">{{ custom_forms|length }}</p>
+            </div>
+            <div class="rounded-xl border border-gray-200 bg-white px-4 py-3">
+                <p class="text-xs uppercase tracking-wide text-gray-500">Quick Filter</p>
+                <p class="mt-1 text-sm font-medium text-gray-700">Search by title or description</p>
+            </div>
+            <div class="rounded-xl border border-gray-200 bg-white px-4 py-3">
+                <p class="text-xs uppercase tracking-wide text-gray-500">Tip</p>
+                <p class="mt-1 text-sm font-medium text-gray-700">Open a form to add fields and send invites.</p>
+            </div>
+        </div>
+        <div class="mt-4 grid gap-3 sm:grid-cols-[1fr,auto]">
+            <label class="sr-only" for="custom-form-search">Search forms</label>
+            <input id="custom-form-search" type="search" placeholder="Search forms..." class="input-field mt-0">
+            <div class="flex gap-2">
+                <button type="button" class="btn-secondary" data-filter="all">All</button>
+                <button type="button" class="btn-secondary" data-filter="active">Active</button>
+                <button type="button" class="btn-secondary" data-filter="inactive">Inactive</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="custom-forms-grid" class="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
         {% for custom_form in custom_forms %}
-            <a href="{% url 'attendance:custom-form-detail' public_id=custom_form.public_id %}" class="card block transition hover:shadow-lg">
-                <div class="flex items-center justify-between gap-2">
-                    <h2 class="text-lg font-semibold text-[#1F2937]">{{ custom_form.title }}</h2>
-                    <span class="rounded-full px-3 py-1 text-xs font-semibold {% if custom_form.is_active %}bg-rotary-gold/20 text-rotary-blue{% else %}bg-gray-100 text-gray-700{% endif %}">
+            <a
+                href="{% url 'attendance:custom-form-detail' public_id=custom_form.public_id %}"
+                class="card custom-form-item block border-gray-200 transition duration-200 hover:-translate-y-0.5 hover:shadow-lg"
+                data-status="{% if custom_form.is_active %}active{% else %}inactive{% endif %}"
+                data-search="{{ custom_form.title|lower }} {{ custom_form.description|default:''|lower }}"
+            >
+                <div class="flex items-start justify-between gap-3">
+                    <h2 class="line-clamp-2 text-lg font-semibold text-[#1F2937]">{{ custom_form.title }}</h2>
+                    <span class="shrink-0 rounded-full px-3 py-1 text-xs font-semibold {% if custom_form.is_active %}bg-rotary-gold/20 text-rotary-blue{% else %}bg-gray-100 text-gray-700{% endif %}">
                         {% if custom_form.is_active %}Active{% else %}Inactive{% endif %}
                     </span>
                 </div>
-                <p class="mt-2 text-sm text-gray-600">{{ custom_form.description|default:"No description" }}</p>
-                <p class="mt-2 text-xs text-gray-500">{{ custom_form.submission_total }} submission{{ custom_form.submission_total|pluralize }}</p>
+                <p class="mt-2 line-clamp-3 min-h-[3.75rem] text-sm text-gray-600">{{ custom_form.description|default:"No description provided yet." }}</p>
+                <div class="mt-4 grid grid-cols-2 gap-2">
+                    <div class="rounded-lg bg-[#F8F9FB] px-3 py-2">
+                        <p class="text-[11px] uppercase tracking-wide text-gray-500">Submissions</p>
+                        <p class="mt-1 text-sm font-semibold text-rotary-blue">{{ custom_form.submission_total }}</p>
+                    </div>
+                    <div class="rounded-lg bg-[#F8F9FB] px-3 py-2">
+                        <p class="text-[11px] uppercase tracking-wide text-gray-500">Created</p>
+                        <p class="mt-1 text-sm font-semibold text-gray-700">{{ custom_form.created_at|date:"d M Y" }}</p>
+                    </div>
+                </div>
+                <p class="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-rotary-blue">
+                    <span>Open Form</span>
+                    <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17 17 7"/><path d="M7 7h10v10"/></svg>
+                </p>
             </a>
         {% empty %}
-            <div class="card text-sm text-gray-600">No custom forms yet.</div>
+            <div class="card md:col-span-2 xl:col-span-3">
+                <div class="rounded-xl border border-dashed border-gray-300 bg-[#F8F9FB] p-8 text-center">
+                    <p class="text-base font-semibold text-[#1F2937]">No custom forms yet</p>
+                    <p class="mt-2 text-sm text-gray-600">Start by creating your first custom form template.</p>
+                    <a href="{% url 'attendance:event-wizard' %}" class="btn-primary mt-4">Create Event</a>
+                </div>
+            </div>
         {% endfor %}
     </div>
 </section>
+
+<script>
+(() => {
+    const search = document.getElementById("custom-form-search");
+    const cards = Array.from(document.querySelectorAll(".custom-form-item"));
+    const filters = Array.from(document.querySelectorAll("[data-filter]"));
+    let currentFilter = "all";
+
+    function applyFilters() {
+        const q = (search?.value || "").trim().toLowerCase();
+        cards.forEach((card) => {
+            const text = card.dataset.search || "";
+            const status = card.dataset.status || "";
+            const statusMatch = currentFilter === "all" || status === currentFilter;
+            const textMatch = !q || text.includes(q);
+            card.classList.toggle("hidden", !(statusMatch && textMatch));
+        });
+    }
+
+    search?.addEventListener("input", applyFilters);
+    filters.forEach((btn) => {
+        btn.addEventListener("click", () => {
+            currentFilter = btn.dataset.filter || "all";
+            filters.forEach((item) => item.classList.remove("bg-rotary-blue", "text-white"));
+            btn.classList.add("bg-rotary-blue", "text-white");
+            applyFilters();
+        });
+    });
+})();
+</script>
 {% endblock %}
