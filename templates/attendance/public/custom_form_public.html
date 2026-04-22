@@ -42,7 +42,10 @@
                     {% for error in field.errors %}<p class="mt-1 text-xs text-rotary-blue">{{ error }}</p>{% endfor %}
                 </div>
             {% endfor %}
-            <button class="btn-accent w-full py-3 text-base disabled:cursor-not-allowed disabled:bg-gray-300" type="submit" id="custom-form-submit-btn" data-loading>Submit Form</button>
+            <button class="btn-accent w-full py-3 text-base disabled:cursor-not-allowed disabled:bg-gray-300" type="submit" id="custom-form-submit-btn" data-loading {% if not registration_open %}disabled{% endif %}>Submit Form</button>
+            {% if not registration_open %}
+                <p class="text-sm font-medium text-rose-600">{{ registration_notice }}</p>
+            {% endif %}
         </form>
     </div>
 </section>
@@ -119,6 +122,10 @@
 
         function updateSubmitState() {
             if (!runtimeForm || !submitBtn) return;
+            if ("{{ registration_open|yesno:'true,false' }}" !== "true") {
+                submitBtn.disabled = true;
+                return;
+            }
             submitBtn.disabled = !runtimeForm.checkValidity();
         }
 

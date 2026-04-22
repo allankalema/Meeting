@@ -24,6 +24,7 @@ from .views import (
     custom_form_toggle_view,
     event_attendance_view,
     event_qr_download_view,
+    event_delete_view,
     event_send_invites_view,
     event_toggle_link_view,
 )
@@ -43,6 +44,7 @@ urlpatterns = [
     path("dashboard/events/<uuid:public_id>/", EventDetailView.as_view(), name="event-detail"),
     path("dashboard/events/<uuid:public_id>/send-invites/", event_send_invites_view, name="event-send-invites"),
     path("dashboard/events/<uuid:public_id>/toggle-link/", event_toggle_link_view, name="event-toggle-link"),
+    path("dashboard/events/<uuid:public_id>/delete/", event_delete_view, name="event-delete"),
     path("dashboard/events/<uuid:public_id>/qr.svg", event_qr_download_view, name="event-qr-download"),
     path("dashboard/custom-forms/", CustomFormListView.as_view(), name="custom-form-list"),
     path("dashboard/custom-forms/create/", CustomFormCreateView.as_view(), name="custom-form-create"),

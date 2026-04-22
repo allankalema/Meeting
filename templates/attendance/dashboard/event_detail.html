@@ -58,6 +58,17 @@
                         Activate the link to send invitations
                     </span>
                 {% endif %}
+                <form method="post" action="{% url 'attendance:event-delete' public_id=event.public_id %}">
+                    {% csrf_token %}
+                    <button
+                        type="submit"
+                        class="btn border border-rose-300 bg-rose-50 text-rose-700 hover:bg-rose-100"
+                        data-confirm="true"
+                        data-confirm-message="Are you sure you want to delete this event? Its linked form will also be deleted if not used elsewhere. Attendee records will remain."
+                    >
+                        Delete Event
+                    </button>
+                </form>
                 <div class="relative">
                     <button type="button" id="share-toggle" class="inline-flex items-center gap-2 px-2 py-2 text-sm font-semibold text-rotary-blue transition hover:text-rotary-blue-700">
                         <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 13.5 15.4 17.5M15.4 6.5 8.6 10.5"/></svg>
