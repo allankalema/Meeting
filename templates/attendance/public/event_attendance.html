@@ -32,7 +32,7 @@
         <p class="mt-1 text-sm text-gray-600">Enter your email or contact. If you have attended before, details will appear automatically.</p>
 
         {% if form.non_field_errors %}
-            <div class="mt-4 rounded-xl border border-rotary-gold/40 bg-rotary-gold/10 px-4 py-3 text-sm text-[#1F2937]">
+            <div class="mt-4 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
                 {% for error in form.non_field_errors %}<p>{{ error }}</p>{% endfor %}
             </div>
         {% endif %}
@@ -44,12 +44,12 @@
                 <div>
                     <label for="{{ form.email.id_for_label }}" class="form-label">Email</label>
                     {{ form.email }}
-                    {% for error in form.email.errors %}<p class="mt-1 text-xs text-rotary-blue">{{ error }}</p>{% endfor %}
+                    {% for error in form.email.errors %}<p class="mt-1 text-xs text-rose-600">{{ error }}</p>{% endfor %}
                 </div>
                 <div>
                     <label for="{{ form.phone.id_for_label }}" class="form-label">Contact</label>
                     {{ form.phone }}
-                    {% for error in form.phone.errors %}<p class="mt-1 text-xs text-rotary-blue">{{ error }}</p>{% endfor %}
+                    {% for error in form.phone.errors %}<p class="mt-1 text-xs text-rose-600">{{ error }}</p>{% endfor %}
                 </div>
             </div>
 
@@ -59,27 +59,27 @@
                 <div>
                     <label for="{{ form.category.id_for_label }}" class="form-label">{{ form.category.label }}</label>
                     {{ form.category }}
-                    {% for error in form.category.errors %}<p class="mt-1 text-xs text-rotary-blue">{{ error }}</p>{% endfor %}
+                    {% for error in form.category.errors %}<p class="mt-1 text-xs text-rose-600">{{ error }}</p>{% endfor %}
                 </div>
                 <div>
                     <label for="{{ form.communication_preference.id_for_label }}" class="form-label">{{ form.communication_preference.label }}</label>
                     {{ form.communication_preference }}
-                    {% for error in form.communication_preference.errors %}<p class="mt-1 text-xs text-rotary-blue">{{ error }}</p>{% endfor %}
+                    {% for error in form.communication_preference.errors %}<p class="mt-1 text-xs text-rose-600">{{ error }}</p>{% endfor %}
                 </div>
                 <div class="sm:col-span-2">
                     <label for="{{ form.full_name.id_for_label }}" class="form-label">Full Name *</label>
                     {{ form.full_name }}
-                    {% for error in form.full_name.errors %}<p class="mt-1 text-xs text-rotary-blue">{{ error }}</p>{% endfor %}
+                    {% for error in form.full_name.errors %}<p class="mt-1 text-xs text-rose-600">{{ error }}</p>{% endfor %}
                 </div>
                 <div>
                     <label for="{{ form.rotary_club.id_for_label }}" class="form-label">Rotary Club *</label>
                     {{ form.rotary_club }}
-                    {% for error in form.rotary_club.errors %}<p class="mt-1 text-xs text-rotary-blue">{{ error }}</p>{% endfor %}
+                    {% for error in form.rotary_club.errors %}<p class="mt-1 text-xs text-rose-600">{{ error }}</p>{% endfor %}
                 </div>
                 <div>
                     <label for="{{ form.rotaract_club.id_for_label }}" class="form-label">Rotaract Club *</label>
                     {{ form.rotaract_club }}
-                    {% for error in form.rotaract_club.errors %}<p class="mt-1 text-xs text-rotary-blue">{{ error }}</p>{% endfor %}
+                    {% for error in form.rotaract_club.errors %}<p class="mt-1 text-xs text-rose-600">{{ error }}</p>{% endfor %}
                 </div>
                 <div class="sm:col-span-2">
                     <label for="{{ form.additional_comments.id_for_label }}" class="form-label">Additional Comments (Optional)</label>
@@ -128,7 +128,7 @@
         }
 
         function notifyError(text) {
-            lookupMessage.className = "rounded-xl border border-rotary-blue/40 bg-rotary-blue/10 px-4 py-3 text-sm text-rotary-blue";
+            lookupMessage.className = "rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700";
             lookupMessage.textContent = text;
         }
 
