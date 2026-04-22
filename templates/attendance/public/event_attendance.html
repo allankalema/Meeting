@@ -19,9 +19,9 @@
                 <p class="mt-2 text-sm text-gray-600">{{ event.description }}</p>
             {% endif %}
             <p class="mt-2 text-sm text-gray-600">Fellow Rotarian, Rotaractor or Guest, please register your attendance below.</p>
-            {% if event.status != "open" %}
+            {% if not registration_open %}
                 <div class="mt-4 rounded-xl border border-rotary-gold/50 bg-rotary-gold/10 px-4 py-3 text-sm text-[#1F2937]">
-                    This event is currently closed for attendance confirmation.
+                    {{ registration_notice|default:"This event is currently closed for attendance confirmation." }}
                 </div>
             {% endif %}
         </div>
@@ -87,13 +87,16 @@
                 </div>
             </div>
 
-            <button {% if event.status != "open" %}disabled{% endif %}
+            <button {% if not registration_open %}disabled{% endif %}
                     class="btn-accent w-full py-3 text-base shadow-md disabled:cursor-not-allowed disabled:bg-gray-300"
                     type="submit"
                     id="attendance-submit-btn"
                     data-loading>
                 Submit Attendance
             </button>
+            {% if not registration_open %}
+                <p class="text-sm font-medium text-rose-600">{{ registration_notice }}</p>
+            {% endif %}
         </form>
     </div>
 </section>
@@ -175,7 +178,10 @@
 
         function updateSubmitState() {
             if (!submitBtn || !formEl) return;
-            if ("{{ event.status }}" !== "open") return;
+            if ("{{ registration_open|yesno:'true,false' }}" !== "true") {
+                submitBtn.disabled = true;
+                return;
+            }
             submitBtn.disabled = !formEl.checkValidity();
         }
 

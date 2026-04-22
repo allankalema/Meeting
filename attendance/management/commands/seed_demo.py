@@ -110,10 +110,10 @@ class Command(BaseCommand):
         now = timezone.now()
         events_data = [
             ("Demo: Weekly Fellowship Breakfast", "Networking and weekly fellowship session.", "Fairway Hotel, Kampala", now + timedelta(days=1), "open", True, None),
-            ("Demo: Community Health Outreach", "Volunteer health camp planning and deployment.", "Nakawa Community Grounds", now + timedelta(days=6), "open", True, None),
-            ("Demo: Project Visit Registration", "Custom-form event for project site visit attendees.", "Mityana Project Site", now + timedelta(days=9), "open", True, custom_template),
-            ("Demo: Youth Leadership Forum", "Mentorship circle with Rotaract and youth leaders.", "Mestil Hotel", now - timedelta(days=5), "closed", True, None),
-            ("Demo: Club Assembly - Quarterly", "Internal strategy and reporting meeting.", "Kabira Country Club", now - timedelta(days=20), "archived", False, None),
+            ("Demo: Community Health Outreach", "Volunteer health camp planning and deployment.", "Nakawa Community Grounds", now + timedelta(days=4), "open", True, None),
+            ("Demo: Project Visit Registration", "Custom-form event for project site visit attendees.", "Mityana Project Site", now + timedelta(days=7), "open", True, custom_template),
+            ("Demo: Youth Leadership Forum", "Mentorship circle with Rotaract and youth leaders.", "Mestil Hotel", now + timedelta(days=10), "open", True, None),
+            ("Demo: Club Assembly - Quarterly", "Internal strategy and reporting meeting.", "Kabira Country Club", now + timedelta(days=13), "open", True, None),
         ]
 
         events = []

@@ -1,6 +1,6 @@
 from io import BytesIO
 
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 from decimal import Decimal
 
 from django.conf import settings
@@ -121,6 +121,20 @@ def _json_safe_payload(payload: dict):
     return {k: _json_safe_value(v) for k, v in payload.items()}
 
 
+def _event_registration_state(event: Event):
+    if not event.is_link_active:
+        return False, "This event registration link is currently inactive."
+    if event.status != "open":
+        return False, "Registration for this event is currently closed by the organizer."
+    close_time = event.event_date + timedelta(hours=24)
+    if timezone.now() > close_time:
+        return (
+            False,
+            f"Registration closed on {timezone.localtime(close_time).strftime('%d %b %Y %I:%M %p')}.",
+        )
+    return True, ""
+
+
 class HomeView(TemplateView):
     template_name = "attendance/home.html"
 
@@ -131,7 +145,7 @@ class PublicEventListView(ListView):
     context_object_name = "events"
 
     def get_queryset(self):
-        qs = Event.objects.filter(is_link_active=True).order_by("event_date")
+        qs = Event.objects.filter(is_link_active=True)
         q = self.request.GET.get("q", "").strip()
         if q:
             qs = qs.filter(
@@ -139,7 +153,10 @@ class PublicEventListView(ListView):
                 | Q(description__icontains=q)
                 | Q(venue__icontains=q)
             )
-        return qs
+        now = timezone.now()
+        events = list(qs)
+        events.sort(key=lambda e: (e.event_date < now, abs(e.event_date - now)))
+        return events
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -196,7 +213,10 @@ class EventListView(LoginRequiredMixin, ListView):
                 | Q(description__icontains=query)
                 | Q(venue__icontains=query)
             )
-        return qs
+        now = timezone.now()
+        events = list(qs)
+        events.sort(key=lambda e: (e.event_date < now, abs(e.event_date - now)))
+        return events
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -377,6 +397,24 @@ def event_toggle_link_view(request, public_id):
     state = "active" if event.is_link_active else "inactive"
     messages.success(request, f"Event registration link is now {state}.")
     return redirect("attendance:event-detail", public_id=event.public_id)
+
+
+@require_POST
+def event_delete_view(request, public_id):
+    if not request.user.is_authenticated:
+        return redirect("attendance:login")
+    event = get_object_or_404(Event, public_id=public_id)
+    form_template = event.form_template
+    event_title = event.title
+    event.delete()
+
+    # Delete linked form if no longer used by any event. Attendees/users remain intact.
+    if form_template and not form_template.events.exists():
+        form_template.delete()
+        messages.success(request, f'"{event_title}" and its linked form were deleted.')
+    else:
+        messages.success(request, f'"{event_title}" was deleted.')
+    return redirect("attendance:event-list")
 
 
 class AttendeeListView(LoginRequiredMixin, ListView):
@@ -568,10 +606,16 @@ def custom_form_public_view(request, public_id):
         custom_form,
         request.POST.get("event_public_id") or request.GET.get("event"),
     )
+    registration_open = True
+    registration_notice = ""
+    if selected_event:
+        registration_open, registration_notice = _event_registration_state(selected_event)
 
     if request.method == "POST":
         runtime_form = build_custom_form_runtime(custom_form, request.POST)
-        if runtime_form.is_valid():
+        if not registration_open:
+            runtime_form.add_error(None, registration_notice)
+        elif runtime_form.is_valid():
             data = runtime_form.cleaned_data
             email = (data.get("email") or "").strip().lower()
             phone = (data.get("phone") or "").strip()
@@ -631,7 +675,13 @@ def custom_form_public_view(request, public_id):
     return render(
         request,
         "attendance/public/custom_form_public.html",
-        {"custom_form": custom_form, "runtime_form": runtime_form, "event": selected_event},
+        {
+            "custom_form": custom_form,
+            "runtime_form": runtime_form,
+            "event": selected_event,
+            "registration_open": registration_open,
+            "registration_notice": registration_notice,
+        },
     )
 
 
@@ -654,6 +704,7 @@ class BroadcastCreateView(LoginRequiredMixin, CreateView):
 
 def event_attendance_view(request, public_id):
     event = get_object_or_404(Event, public_id=public_id)
+    registration_open, registration_notice = _event_registration_state(event)
     if not event.is_link_active and not request.user.is_authenticated:
         return render(
             request,
@@ -669,12 +720,12 @@ def event_attendance_view(request, public_id):
     if event.form_template_id:
         custom_url = reverse("attendance:custom-form-public", kwargs={"public_id": event.form_template.public_id})
         return redirect(f"{custom_url}?event={event.public_id}")
-    if event.status != "open" and request.method == "POST":
-        raise Http404("This event is not open for confirmation.")
 
     if request.method == "POST":
         form = AttendanceSubmissionForm(request.POST, event=event)
-        if form.is_valid():
+        if not registration_open:
+            form.add_error(None, registration_notice)
+        elif form.is_valid():
             attendee, attendance, created = form.save()
             send_attendance_confirmation(attendee, event)
             return render(
@@ -686,7 +737,16 @@ def event_attendance_view(request, public_id):
         initial_source = "qr" if request.GET.get("src") == "qr" else "link"
         form = AttendanceSubmissionForm(event=event, initial={"source": initial_source})
 
-    return render(request, "attendance/public/event_attendance.html", {"event": event, "form": form})
+    return render(
+        request,
+        "attendance/public/event_attendance.html",
+        {
+            "event": event,
+            "form": form,
+            "registration_open": registration_open,
+            "registration_notice": registration_notice,
+        },
+    )
 
 
 class EventLookupView(View):
