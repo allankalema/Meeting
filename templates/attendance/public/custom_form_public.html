@@ -22,7 +22,7 @@
     </div>
 
     <div class="card p-6">
-        <form method="post" class="space-y-4">
+        <form method="post" class="space-y-4" id="custom-form-runtime">
             {% csrf_token %}
             {% if event %}
                 <input type="hidden" name="event_public_id" value="{{ event.public_id }}">
@@ -40,7 +40,7 @@
                     {% for error in field.errors %}<p class="mt-1 text-xs text-rotary-blue">{{ error }}</p>{% endfor %}
                 </div>
             {% endfor %}
-            <button class="btn-accent w-full py-3 text-base" data-loading>Submit Form</button>
+            <button class="btn-accent w-full py-3 text-base disabled:cursor-not-allowed disabled:bg-gray-300" type="submit" id="custom-form-submit-btn" data-loading>Submit Form</button>
         </form>
     </div>
 </section>
@@ -49,6 +49,8 @@
         const email = document.getElementById("id_email");
         const phone = document.getElementById("id_phone");
         const lookupMessage = document.getElementById("lookup-message");
+        const runtimeForm = document.getElementById("custom-form-runtime");
+        const submitBtn = document.getElementById("custom-form-submit-btn");
         const csrfToken = document.querySelector("input[name='csrfmiddlewaretoken']")?.value;
         const endpoint = "{% url 'attendance:custom-form-lookup' public_id=custom_form.public_id %}";
         let pending;
@@ -112,6 +114,15 @@
                 notifyFound("Is this your information?");
             }, 250);
         }
+
+        function updateSubmitState() {
+            if (!runtimeForm || !submitBtn) return;
+            submitBtn.disabled = !runtimeForm.checkValidity();
+        }
+
+        updateSubmitState();
+        runtimeForm?.addEventListener("input", updateSubmitState);
+        runtimeForm?.addEventListener("change", updateSubmitState);
 
         email?.addEventListener("blur", runLookup);
         phone?.addEventListener("blur", runLookup);

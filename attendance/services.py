@@ -67,7 +67,7 @@ def send_custom_form_announcement(custom_form, recipients, form_url=""):
     )
 
 
-def send_custom_form_confirmation(email, custom_form):
+def send_custom_form_confirmation(email, custom_form, event=None, attendee=None):
     if not email:
         return 0
     return _send_email(
@@ -75,7 +75,7 @@ def send_custom_form_confirmation(email, custom_form):
         recipients=[email],
         text_template="attendance/emails/custom_form_confirmation.txt",
         html_template="attendance/emails/custom_form_confirmation.html",
-        context={"custom_form": custom_form},
+        context={"custom_form": custom_form, "event": event, "attendee": attendee},
     )
 
 

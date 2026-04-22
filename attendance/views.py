@@ -559,7 +559,12 @@ def custom_form_public_view(request, public_id):
                         attendee=attendee,
                         source="link",
                     )
-                send_custom_form_confirmation(attendee.email, custom_form)
+                send_custom_form_confirmation(
+                    attendee.email,
+                    custom_form,
+                    event=selected_event,
+                    attendee=attendee,
+                )
                 return render(
                     request,
                     "attendance/public/custom_form_success.html",

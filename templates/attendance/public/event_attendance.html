@@ -89,6 +89,8 @@
 
             <button {% if event.status != "open" %}disabled{% endif %}
                     class="btn-accent w-full py-3 text-base shadow-md disabled:cursor-not-allowed disabled:bg-gray-300"
+                    type="submit"
+                    id="attendance-submit-btn"
                     data-loading>
                 Submit Attendance
             </button>
@@ -104,6 +106,8 @@
         const autofillPanel = document.getElementById("autofill-panel");
         const csrfToken = document.querySelector("input[name='csrfmiddlewaretoken']")?.value;
         const endpoint = "{% url 'attendance:event-lookup' public_id=event.public_id %}";
+        const submitBtn = document.getElementById("attendance-submit-btn");
+        const formEl = document.getElementById("attendance-form");
         const fields = [
             "full_name", "email", "phone", "category", "rotary_club",
             "rotaract_club", "communication_preference", "additional_comments"
@@ -168,6 +172,16 @@
                 autofillPanel.classList.remove("bg-rotary-gold/10", "border-rotary-gold/40");
             }, 250);
         }
+
+        function updateSubmitState() {
+            if (!submitBtn || !formEl) return;
+            if ("{{ event.status }}" !== "open") return;
+            submitBtn.disabled = !formEl.checkValidity();
+        }
+
+        updateSubmitState();
+        formEl?.addEventListener("input", updateSubmitState);
+        formEl?.addEventListener("change", updateSubmitState);
 
         email?.addEventListener("blur", runLookup);
         phone?.addEventListener("blur", runLookup);

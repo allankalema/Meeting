@@ -1,6 +1,14 @@
-Hello,
+{% if attendee and attendee.full_name %}Hello {{ attendee.full_name }},{% else %}Hello,{% endif %}
 
-Your submission for "{{ custom_form.title }}" has been received.
+Your submission for "{{ custom_form.title }}" has been received successfully.
 
-Thank you,
-Kampala Early Bird - Rotary Club
+{% if event %}
+Meeting details:
+- Event: {{ event.title }}
+- Date: {{ event.event_date|date:"D, d M Y g:i A" }}
+{% if event.venue %}- Venue: {{ event.venue }}{% endif %}
+{% if event.description %}- About: {{ event.description }}{% endif %}
+
+{% endif %}
+Thank you for registering with Kampala Early Bird - Rotary Club.
+We look forward to seeing you.
