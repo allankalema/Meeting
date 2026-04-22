@@ -2,41 +2,69 @@
 {% load static %}
 {% block title %}Kampala Early Bird - Rotary Club{% endblock %}
 {% block content %}
-<section class="space-y-8">
-    <div class="card overflow-hidden border-rotary-blue/20 p-0">
-        <div class="grid items-stretch lg:grid-cols-2">
-            <div class="bg-gradient-to-br from-rotary-blue to-rotary-blue-700 p-7 text-white sm:p-10">
+<section class="space-y-6 sm:space-y-8">
+    <div class="card relative overflow-hidden border-rotary-blue/20 p-0">
+        <div class="pointer-events-none absolute -left-14 -top-14 h-36 w-36 rounded-full bg-rotary-gold/25 blur-2xl"></div>
+        <div class="pointer-events-none absolute -bottom-16 -right-16 h-44 w-44 rounded-full bg-rotary-blue/15 blur-3xl"></div>
+        <div class="relative grid items-stretch lg:grid-cols-[1.25fr,1fr]">
+            <div class="bg-gradient-to-br from-rotary-blue to-rotary-blue-700 p-6 text-white sm:p-10">
                 <div class="flex items-center gap-3">
-                    <img src="{% static 'logo.jpg' %}" alt="Kampala Early Bird logo" class="h-16 w-16 rounded-xl border border-white/40 object-cover">
+                    <img src="{% static 'logo.jpg' %}" alt="Kampala Early Bird logo" class="h-16 w-16 rounded-2xl border border-white/40 object-cover shadow-md">
                     <div>
                         <p class="text-xs uppercase tracking-[0.2em] text-rotary-gold">Kampala Early Bird</p>
-                        <h1 class="text-2xl font-bold sm:text-3xl">Rotary Club</h1>
+                        <h1 class="text-2xl font-bold sm:text-4xl">Rotary Club</h1>
                     </div>
                 </div>
-                <p class="mt-6 max-w-lg text-sm text-white/90 sm:text-base">
-                    A modern attendance and engagement platform for meetings, events, and communication.
-                    Members can check in faster, while organizers manage events and outreach in one place.
+                <p class="mt-6 max-w-2xl text-sm leading-relaxed text-white/90 sm:text-base">
+                    Welcome to Kampala Early Bird Rotary Club.
+                    We are a fellowship of leaders and changemakers committed to service above self through community projects, mentorship, and meaningful partnerships.
                 </p>
-                <div class="mt-7 flex flex-wrap gap-3">
+                <div class="mt-7 grid gap-2 sm:flex sm:flex-wrap">
                     {% if request.user.is_authenticated %}
-                        <a href="{% url 'attendance:dashboard' %}" class="btn-accent">Open Dashboard</a>
+                        <a href="{% url 'attendance:dashboard' %}" class="btn-accent justify-center">Open Dashboard</a>
+                        <a href="{% url 'attendance:event-list' %}" class="btn bg-white text-rotary-blue hover:bg-rotary-gold hover:text-white justify-center">Club Events</a>
                     {% else %}
-                        <a href="{% url 'attendance:public-event-list' %}" class="btn-secondary">Browse Events</a>
-                        <a href="{% url 'attendance:login' %}" class="btn-accent">Organizer Login</a>
+                        <a href="{% url 'attendance:public-event-list' %}" class="btn bg-white text-rotary-blue hover:bg-rotary-gold hover:text-white justify-center">Upcoming Meetings</a>
+                        <a href="{% url 'attendance:login' %}" class="btn-accent justify-center">Organizer Login</a>
                     {% endif %}
                 </div>
             </div>
-            <div class="flex flex-col justify-center bg-[#F8F9FB] p-7 sm:p-10">
-                <h2 class="text-lg font-semibold text-[#1F2937]">Public Check-in</h2>
-                <p class="mt-2 text-sm text-gray-600">Use your event link or QR to open the registration form for that meeting.</p>
-                <p class="mt-5 text-sm text-gray-500">Organizer features include:</p>
-                <ul class="mt-3 space-y-2 text-sm text-gray-700">
-                    <li class="flex items-center gap-2"><span class="h-2 w-2 rounded-full bg-rotary-gold"></span> Event and QR management</li>
-                    <li class="flex items-center gap-2"><span class="h-2 w-2 rounded-full bg-rotary-gold"></span> Default and custom forms</li>
-                    <li class="flex items-center gap-2"><span class="h-2 w-2 rounded-full bg-rotary-gold"></span> Email invites and club alerts</li>
-                    <li class="flex items-center gap-2"><span class="h-2 w-2 rounded-full bg-rotary-gold"></span> Attendance and participation analytics</li>
-                </ul>
+            <div class="flex flex-col justify-center bg-[#F8F9FB] p-6 sm:p-10">
+                <h2 class="text-lg font-semibold text-[#1F2937] sm:text-xl">About Our Club</h2>
+                <div class="mt-4 space-y-3">
+                    <div class="rounded-xl border border-gray-200 bg-white px-4 py-3">
+                        <p class="text-xs font-semibold uppercase tracking-wide text-rotary-blue">Mission</p>
+                        <p class="mt-1 text-sm text-gray-600">To create positive and lasting change in our communities through service, integrity, and collaboration.</p>
+                    </div>
+                    <div class="rounded-xl border border-gray-200 bg-white px-4 py-3">
+                        <p class="text-xs font-semibold uppercase tracking-wide text-rotary-blue">Fellowship</p>
+                        <p class="mt-1 text-sm text-gray-600">We bring together professionals and friends who believe in giving back and supporting one another.</p>
+                    </div>
+                    <div class="rounded-xl border border-gray-200 bg-white px-4 py-3">
+                        <p class="text-xs font-semibold uppercase tracking-wide text-rotary-blue">Impact Areas</p>
+                        <p class="mt-1 text-sm text-gray-600">Education, youth empowerment, health, and local community development initiatives.</p>
+                    </div>
+                </div>
             </div>
+        </div>
+    </div>
+
+    <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <div class="card border-gray-200 p-5">
+            <h3 class="text-sm font-semibold text-[#1F2937]">Service Projects</h3>
+            <p class="mt-2 text-sm text-gray-600">We organize projects that improve lives and strengthen neighborhoods.</p>
+        </div>
+        <div class="card border-gray-200 p-5">
+            <h3 class="text-sm font-semibold text-[#1F2937]">Weekly Meetings</h3>
+            <p class="mt-2 text-sm text-gray-600">Join our sessions for learning, planning, and fellowship with purpose.</p>
+        </div>
+        <div class="card border-gray-200 p-5">
+            <h3 class="text-sm font-semibold text-[#1F2937]">Youth Leadership</h3>
+            <p class="mt-2 text-sm text-gray-600">We mentor and empower young leaders through practical opportunities.</p>
+        </div>
+        <div class="card border-gray-200 p-5">
+            <h3 class="text-sm font-semibold text-[#1F2937]">Community Network</h3>
+            <p class="mt-2 text-sm text-gray-600">Partnering with members, guests, and organizations to drive local impact.</p>
         </div>
     </div>
 </section>
