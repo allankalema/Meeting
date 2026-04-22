@@ -283,10 +283,9 @@ class EventWizardForm(forms.Form):
 class CustomFormFieldWizardForm(forms.ModelForm):
     class Meta:
         model = FormField
-        fields = ["label", "key", "field_type", "required", "options", "order"]
+        fields = ["label", "field_type", "required", "options", "order"]
         widgets = {
             "label": forms.TextInput(attrs={"class": INPUT_CLASS, "placeholder": "Field label"}),
-            "key": forms.TextInput(attrs={"class": INPUT_CLASS, "placeholder": "field_key"}),
             "field_type": forms.Select(attrs={"class": SELECT_CLASS}),
             "required": forms.CheckboxInput(attrs={"class": "h-4 w-4 rounded border-gray-300 text-rotary-blue"}),
             "options": forms.Textarea(

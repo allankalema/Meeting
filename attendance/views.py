@@ -10,6 +10,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.safestring import mark_safe
+from django.utils.text import slugify
 from django.views import View
 from django.views.decorators.http import require_GET, require_POST
 from django.views.generic import CreateView, DetailView, ListView, TemplateView
@@ -53,6 +54,18 @@ def _consenting_emails():
 def _absolute_public_url(path: str) -> str:
     base = getattr(settings, "SYSTEM_BASE_URL", "http://127.0.0.1:8000").rstrip("/")
     return f"{base}{path}"
+
+
+def _build_unique_key(raw_label: str, existing_keys):
+    base = slugify(raw_label).replace("-", "_")
+    if not base:
+        base = "field"
+    candidate = base
+    i = 2
+    while candidate in existing_keys:
+        candidate = f"{base}_{i}"
+        i += 1
+    return candidate
 
 
 class HomeView(TemplateView):
@@ -163,6 +176,8 @@ class EventWizardView(LoginRequiredMixin, TemplateView):
             if field_form.is_valid():
                 fields = request.session.get("event_wizard_fields", [])
                 item = field_form.cleaned_data.copy()
+                existing_keys = {f["key"] for f in fields}
+                item["key"] = _build_unique_key(item["label"], existing_keys)
                 item["order"] = int(item["order"])
                 item["required"] = bool(item["required"])
                 fields.append(item)
@@ -382,6 +397,8 @@ def custom_form_add_field_view(request, public_id):
     if form.is_valid():
         field = form.save(commit=False)
         field.template = custom_form
+        existing = set(custom_form.fields.values_list("key", flat=True))
+        field.key = _build_unique_key(field.label, existing)
         field.save()
         messages.success(request, "Field added to custom form.")
         next_order = custom_form.fields.count() + 1

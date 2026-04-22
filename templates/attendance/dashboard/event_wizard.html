@@ -3,8 +3,14 @@
 {% block content %}
 <section class="space-y-5" id="event-wizard-root">
     <div class="card p-6">
-        <h1 class="text-2xl font-bold text-[#1F2937]">Create Event</h1>
-        <p class="mt-1 text-sm text-gray-600">Step 1: Event details, Step 2: Form type, Step 3: Build fields (if custom), Step 4: Create event.</p>
+        <h1 class="text-2xl font-bold text-[#1F2937]">Create Event Wizard</h1>
+        <p class="mt-1 text-sm text-gray-600">Follow the steps in order. You will only see one step at a time.</p>
+        <div class="mt-4 grid grid-cols-4 gap-2 text-xs font-semibold">
+            <div class="rounded-lg border px-3 py-2 text-center" data-step-indicator="1">1. Details</div>
+            <div class="rounded-lg border px-3 py-2 text-center" data-step-indicator="2">2. Form Type</div>
+            <div class="rounded-lg border px-3 py-2 text-center" data-step-indicator="3">3. Fields</div>
+            <div class="rounded-lg border px-3 py-2 text-center" data-step-indicator="4">4. Review</div>
+        </div>
     </div>
 
     <div class="grid gap-6 lg:grid-cols-2">
@@ -13,7 +19,7 @@
                 {% csrf_token %}
                 <input type="hidden" name="action" id="wizard-action" value="create_event">
 
-                <div class="space-y-3" data-step="1">
+                <div class="space-y-3" data-wizard-panel="1">
                     <h2 class="text-lg font-semibold text-[#1F2937]">Step 1: Event Information</h2>
                     {% for field in wizard_form %}
                         {% if field.name != 'form_type' and field.name != 'send_invites_now' %}
@@ -31,9 +37,12 @@
                             </div>
                         {% endif %}
                     {% endfor %}
+                    <div class="pt-2">
+                        <button type="button" class="btn-primary w-full" data-next-step>Next Step</button>
+                    </div>
                 </div>
 
-                <div class="space-y-3 border-t border-gray-200 pt-4" data-step="2">
+                <div class="space-y-3 hidden" data-wizard-panel="2">
                     <h2 class="text-lg font-semibold text-[#1F2937]">Step 2: Choose Form Type</h2>
                     <div class="space-y-2 text-sm text-gray-700">
                         {% for radio in wizard_form.form_type %}
@@ -46,23 +55,37 @@
                     {% for error in wizard_form.form_type.errors %}<p class="mt-1 text-xs text-rotary-blue">{{ error }}</p>{% endfor %}
                     <label for="{{ wizard_form.send_invites_now.id_for_label }}" class="mt-2 flex items-start gap-3 text-sm text-gray-700">
                         {{ wizard_form.send_invites_now }}
-                        <span>After creation, ask me to send invitations now.</span>
+                        <span>After creation, send invitations immediately.</span>
                     </label>
+                    <div class="flex gap-2 pt-2">
+                        <button type="button" class="btn-secondary w-full" data-prev-step>Back</button>
+                        <button type="button" class="btn-primary w-full" data-next-step>Next Step</button>
+                    </div>
                 </div>
 
-                <div class="pt-3">
-                    <button class="btn-primary w-full py-3" data-loading>Create Event</button>
+                <div class="space-y-3 hidden" data-wizard-panel="4">
+                    <h2 class="text-lg font-semibold text-[#1F2937]">Step 4: Review and Create</h2>
+                    <div class="rounded-xl border border-gray-200 bg-[#F8F9FB] p-4 text-sm text-gray-700">
+                        <p><strong>Title:</strong> <span data-review="title">-</span></p>
+                        <p><strong>Date:</strong> <span data-review="event_date">-</span></p>
+                        <p><strong>Venue:</strong> <span data-review="venue">-</span></p>
+                        <p><strong>Form:</strong> <span data-review="form_type">-</span></p>
+                    </div>
+                    <div class="flex gap-2 pt-2">
+                        <button type="button" class="btn-secondary w-full" data-prev-step>Back</button>
+                        <button class="btn-primary w-full py-3" data-loading>Create Event</button>
+                    </div>
                 </div>
             </form>
         </div>
 
-        <div class="space-y-4">
+        <div class="space-y-4 hidden" id="step-3-area">
             <div class="card" id="custom-fields-builder">
                 <div class="flex items-center justify-between">
-                    <h2 class="text-lg font-semibold text-[#1F2937]">Step 3: Custom Fields</h2>
+                    <h2 class="text-lg font-semibold text-[#1F2937]">Step 3: Add Custom Fields</h2>
                     <button type="button" class="btn-secondary text-xs px-3 py-2 md:hidden" data-preview-toggle>Preview</button>
                 </div>
-                <p class="mt-1 text-xs text-gray-500">Email and Contact are already included by default.</p>
+                <p class="mt-1 text-xs text-gray-500">Email and Contact are default fields. Add extra fields below.</p>
                 <form method="post" class="mt-4 space-y-3" id="add-field-form">
                     {% csrf_token %}
                     <input type="hidden" name="action" value="add_field">
@@ -81,7 +104,11 @@
                             {% for error in field.errors %}<p class="mt-1 text-xs text-rotary-blue">{{ error }}</p>{% endfor %}
                         </div>
                     {% endfor %}
-                    <button class="btn-secondary w-full" data-loading>Add Field</button>
+                    <div class="flex gap-2 pt-2">
+                        <button type="button" class="btn-secondary w-full" data-prev-step>Back</button>
+                        <button class="btn-secondary w-full" data-loading data-step-lock="3">Add Field</button>
+                        <button type="button" class="btn-primary w-full" data-next-step>Next Step</button>
+                    </div>
                 </form>
             </div>
 
@@ -102,9 +129,7 @@
                             {% if field.field_type == 'textarea' %}
                                 <textarea class="input-field" rows="3" disabled placeholder="{{ field.label }}"></textarea>
                             {% elif field.field_type == 'select' %}
-                                <select class="select-field" disabled>
-                                    <option>Select an option</option>
-                                </select>
+                                <select class="select-field" disabled><option>Select an option</option></select>
                             {% elif field.field_type == 'checkbox' %}
                                 <label class="flex items-center gap-2 text-sm text-gray-600"><input type="checkbox" disabled> {{ field.label }}</label>
                             {% elif field.field_type == 'date' %}
@@ -117,7 +142,7 @@
                         </div>
                     {% endfor %}
                     {% if not fields %}
-                        <p class="text-sm text-gray-500">No custom fields added yet.</p>
+                        <p class="text-sm text-gray-500">No custom fields yet. Add one then continue.</p>
                     {% endif %}
                 </div>
             </div>
@@ -127,33 +152,122 @@
 
 <script>
 (() => {
+    const panels = document.querySelectorAll("[data-wizard-panel]");
+    const stepIndicators = document.querySelectorAll("[data-step-indicator]");
+    const step3Area = document.getElementById("step-3-area");
     const formTypeInputs = document.querySelectorAll("input[name='form_type']");
-    const builder = document.getElementById("custom-fields-builder");
     const fieldType = document.getElementById("id_field_type");
     const optionsWrap = document.getElementById("field-options-wrap");
     const previewToggle = document.querySelector("[data-preview-toggle]");
     const previewPanel = document.getElementById("preview-panel");
+    const wizardForm = document.getElementById("wizard-main-form");
+    const addFieldForm = document.getElementById("add-field-form");
 
-    function updateBuilderVisibility() {
-        const selected = document.querySelector("input[name='form_type']:checked")?.value;
-        if (selected === "custom") {
-            builder.classList.remove("hidden");
-        } else {
-            builder.classList.add("hidden");
-        }
+    let currentStep = Number(localStorage.getItem("eventWizardStep") || "1");
+
+    function selectedFormType() {
+        return document.querySelector("input[name='form_type']:checked")?.value || "default";
     }
+
+    function maxStep() {
+        return selectedFormType() === "custom" ? 4 : 4;
+    }
+
+    function validateCurrentStep() {
+        if (currentStep === 1) {
+            const requiredInputs = wizardForm.querySelectorAll("[data-wizard-panel='1'] input, [data-wizard-panel='1'] textarea, [data-wizard-panel='1'] select");
+            for (const input of requiredInputs) {
+                if (input.type !== "checkbox" && !input.checkValidity()) {
+                    input.reportValidity();
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    function updateReview() {
+        const map = {
+            title: document.getElementById("id_title")?.value || "-",
+            event_date: document.getElementById("id_event_date")?.value || "-",
+            venue: document.getElementById("id_venue")?.value || "-",
+            form_type: selectedFormType() === "custom" ? "Custom Form" : "Default Form",
+        };
+        Object.entries(map).forEach(([k, v]) => {
+            const el = document.querySelector(`[data-review='${k}']`);
+            if (el) el.textContent = v;
+        });
+    }
+
+    function render() {
+        panels.forEach(p => p.classList.add("hidden"));
+        if (currentStep === 1) document.querySelector("[data-wizard-panel='1']")?.classList.remove("hidden");
+        if (currentStep === 2) document.querySelector("[data-wizard-panel='2']")?.classList.remove("hidden");
+        if (currentStep === 4) {
+            document.querySelector("[data-wizard-panel='4']")?.classList.remove("hidden");
+            updateReview();
+        }
+
+        if (selectedFormType() === "custom" && currentStep === 3) {
+            step3Area.classList.remove("hidden");
+        } else {
+            step3Area.classList.add("hidden");
+        }
+
+        stepIndicators.forEach((item) => {
+            const step = Number(item.dataset.stepIndicator);
+            item.classList.remove("border-rotary-blue", "bg-rotary-blue", "text-white", "border-rotary-gold", "text-rotary-blue");
+            item.classList.add("border-gray-200", "text-gray-500");
+            if (step === currentStep) {
+                item.classList.remove("border-gray-200", "text-gray-500");
+                item.classList.add("border-rotary-blue", "bg-rotary-blue", "text-white");
+            } else if (step < currentStep) {
+                item.classList.remove("border-gray-200", "text-gray-500");
+                item.classList.add("border-rotary-gold", "text-rotary-blue");
+            }
+        });
+
+        localStorage.setItem("eventWizardStep", String(currentStep));
+    }
+
+    function goNext() {
+        if (!validateCurrentStep()) return;
+        if (currentStep === 2 && selectedFormType() === "default") {
+            currentStep = 4;
+        } else if (currentStep < maxStep()) {
+            currentStep += 1;
+        }
+        render();
+    }
+
+    function goPrev() {
+        if (currentStep === 4 && selectedFormType() === "default") {
+            currentStep = 2;
+        } else if (currentStep > 1) {
+            currentStep -= 1;
+        }
+        render();
+    }
+
+    document.querySelectorAll("[data-next-step]").forEach(btn => btn.addEventListener("click", goNext));
+    document.querySelectorAll("[data-prev-step]").forEach(btn => btn.addEventListener("click", goPrev));
+    formTypeInputs.forEach(i => i.addEventListener("change", render));
 
     function updateOptionsVisibility() {
         if (!fieldType || !optionsWrap) return;
-        const show = fieldType.value === "select";
-        optionsWrap.classList.toggle("hidden", !show);
+        optionsWrap.classList.toggle("hidden", fieldType.value !== "select");
     }
 
-    formTypeInputs.forEach(i => i.addEventListener("change", updateBuilderVisibility));
-    fieldType?.addEventListener("change", updateOptionsVisibility);
+    addFieldForm?.addEventListener("submit", () => {
+        localStorage.setItem("eventWizardStep", "3");
+    });
+
     previewToggle?.addEventListener("click", () => previewPanel.classList.toggle("hidden"));
-    updateBuilderVisibility();
+    fieldType?.addEventListener("change", updateOptionsVisibility);
+
+    if (currentStep < 1 || currentStep > 4) currentStep = 1;
     updateOptionsVisibility();
+    render();
 })();
 </script>
 {% endblock %}
