@@ -1,0 +1,92 @@
+{% extends "attendance/base.html" %}
+{% block title %}Dashboard{% endblock %}
+{% block content %}
+<section class="space-y-6">
+    <div class="card border-rotary-blue/20 bg-gradient-to-r from-white to-rotary-gold/10 p-6">
+        <div class="flex flex-wrap items-center justify-between gap-4">
+            <div>
+                <h1 class="text-2xl font-bold text-[#1F2937]">Organizer Dashboard</h1>
+                <p class="mt-1 text-sm text-gray-600">Manage events, custom forms, announcements, and member engagement.</p>
+            </div>
+            <div class="flex flex-wrap gap-2">
+                <a href="{% url 'attendance:event-wizard' %}" class="btn-primary">Create Event</a>
+                <a href="{% url 'attendance:custom-form-list' %}" class="btn-secondary">Manage Forms</a>
+                <a href="{% url 'attendance:broadcast-create' %}" class="btn-accent">Send Alert</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div class="card"><p class="text-xs uppercase text-gray-500">Events</p><p class="mt-2 text-3xl font-bold text-rotary-blue">{{ event_count }}</p></div>
+        <div class="card"><p class="text-xs uppercase text-gray-500">Attendees</p><p class="mt-2 text-3xl font-bold text-rotary-blue">{{ attendee_count }}</p></div>
+        <div class="card"><p class="text-xs uppercase text-gray-500">Check-ins</p><p class="mt-2 text-3xl font-bold text-rotary-blue">{{ attendance_count }}</p></div>
+        <div class="card"><p class="text-xs uppercase text-gray-500">Custom Forms</p><p class="mt-2 text-3xl font-bold text-rotary-blue">{{ custom_form_count }}</p></div>
+    </div>
+
+    <div class="grid gap-6 lg:grid-cols-2">
+        <div class="card">
+            <div class="mb-3 flex items-center justify-between">
+                <h2 class="font-semibold text-[#1F2937]">Frequent attendees</h2>
+                <a href="{% url 'attendance:attendee-list' %}" class="text-sm text-rotary-blue">View all</a>
+            </div>
+            <div class="space-y-3">
+                {% for attendee in frequent_attendees %}
+                    <div class="rounded-xl border border-gray-200 px-4 py-3">
+                        <p class="font-medium text-[#1F2937]">{{ attendee.full_name }}</p>
+                        <p class="text-xs text-gray-500">{{ attendee.total }} check-in{{ attendee.total|pluralize }}</p>
+                    </div>
+                {% empty %}
+                    <p class="rounded-xl border border-gray-200 bg-[#F8F9FB] px-4 py-3 text-sm text-gray-500">No attendance records yet.</p>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="card">
+            <h2 class="mb-3 font-semibold text-[#1F2937]">Members missing out</h2>
+            <div class="space-y-3">
+                {% for attendee in low_participation %}
+                    <div class="rounded-xl border border-gray-200 px-4 py-3">
+                        <p class="font-medium text-[#1F2937]">{{ attendee.full_name }}</p>
+                        <p class="text-xs text-gray-500">{{ attendee.total }} check-in{{ attendee.total|pluralize }}</p>
+                    </div>
+                {% empty %}
+                    <p class="rounded-xl border border-gray-200 bg-[#F8F9FB] px-4 py-3 text-sm text-gray-500">No attendee records yet.</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <div class="grid gap-6 lg:grid-cols-2">
+        <div class="card">
+            <div class="mb-3 flex items-center justify-between">
+                <h2 class="font-semibold text-[#1F2937]">Upcoming events</h2>
+                <a href="{% url 'attendance:event-list' %}" class="text-sm text-rotary-blue">View all</a>
+            </div>
+            <div class="space-y-3">
+                {% for event in upcoming_events %}
+                    <a href="{% url 'attendance:event-detail' public_id=event.public_id %}" class="block rounded-xl border border-gray-200 px-4 py-3 transition hover:shadow-md">
+                        <p class="font-medium text-[#1F2937]">{{ event.title }}</p>
+                        <p class="text-xs text-gray-500">{{ event.event_date|date:"d M Y - g:i A" }}</p>
+                    </a>
+                {% empty %}
+                    <p class="rounded-xl border border-gray-200 bg-[#F8F9FB] px-4 py-3 text-sm text-gray-500">No upcoming events yet.</p>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="card">
+            <h2 class="mb-3 font-semibold text-[#1F2937]">Recent confirmations</h2>
+            <div class="space-y-3">
+                {% for item in recent_attendances %}
+                    <div class="rounded-xl border border-gray-200 px-4 py-3">
+                        <p class="font-medium text-[#1F2937]">{{ item.attendee.full_name }}</p>
+                        <p class="text-xs text-gray-500">{{ item.event.title }} - {{ item.confirmed_at|date:"d M Y g:i A" }}</p>
+                    </div>
+                {% empty %}
+                    <p class="rounded-xl border border-gray-200 bg-[#F8F9FB] px-4 py-3 text-sm text-gray-500">No attendance submissions yet.</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

@@ -1,0 +1,185 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en" class="h-full bg-[#F8F9FB]">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Kampala Early Bird - Rotary Club{% endblock %}</title>
+    <link rel="icon" type="image/jpeg" href="{% static 'logo.jpg' %}">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        "rotary-blue": { DEFAULT: "#17458F", 600: "#123A79", 700: "#0F3167" },
+                        "rotary-gold": { DEFAULT: "#F7A81B", 500: "#F7A81B", 600: "#DD930E" },
+                    },
+                    boxShadow: { card: "0 10px 24px -14px rgba(31, 41, 55, 0.22)" },
+                },
+            },
+        };
+    </script>
+    <style type="text/tailwindcss">
+        @layer components {
+            .card { @apply rounded-2xl border border-gray-200 bg-white p-5 shadow-card; }
+            .btn { @apply inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition duration-200 ease-in-out active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-60; }
+            .btn-primary { @apply btn bg-rotary-blue text-white hover:bg-rotary-blue-700; }
+            .btn-secondary { @apply btn border border-rotary-blue text-rotary-blue hover:bg-rotary-blue hover:text-white; }
+            .btn-accent { @apply btn bg-rotary-gold text-white hover:bg-rotary-gold-600; }
+            .input-field { @apply mt-1 w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm text-gray-800 shadow-sm outline-none transition placeholder:text-gray-400 focus:border-rotary-blue focus:ring-2 focus:ring-rotary-blue/25; }
+            .select-field {
+                @apply input-field appearance-none pr-10;
+                background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 20 20'%3E%3Cpath fill='%2317458F' d='M5.5 7.5 10 12l4.5-4.5 1.4 1.4L10 14.8 4.1 8.9z'/%3E%3C/svg%3E");
+                background-position: right 0.8rem center;
+                background-repeat: no-repeat;
+                background-size: 1rem 1rem;
+            }
+            .form-label { @apply text-sm font-semibold text-gray-800; }
+            .desktop-link { @apply rounded-lg px-3 py-2 text-sm font-medium text-white/90 transition hover:bg-white/10 hover:text-white; }
+            .desktop-link-active { @apply desktop-link underline decoration-2 underline-offset-8 decoration-rotary-gold; }
+            .toast { @apply pointer-events-auto rounded-xl border px-4 py-3 text-sm shadow-lg backdrop-blur; }
+        }
+    </style>
+</head>
+<body class="h-full bg-[#F8F9FB] text-[#1F2937] antialiased">
+    <div class="min-h-full pb-20 md:pb-0">
+        <header class="sticky top-0 z-20 border-b border-rotary-blue-700 bg-rotary-blue">
+            <div class="mx-auto flex max-w-6xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
+                <a href="{% url 'attendance:home' %}" class="flex items-center gap-3">
+                    <img src="{% static 'logo.jpg' %}" alt="Kampala Early Bird Rotary Club logo" class="h-10 w-10 rounded-full border border-white/40 object-cover">
+                    <div class="leading-tight text-white">
+                        <p class="text-sm font-semibold tracking-tight sm:text-base">Kampala Early Bird</p>
+                        <p class="text-[11px] text-white/80 sm:text-xs">Rotary Club</p>
+                    </div>
+                </a>
+
+                {% if request.user.is_authenticated %}
+                    <nav class="hidden items-center gap-2 md:flex">
+                        <a href="{% url 'attendance:home' %}" class="{% if request.path == '/' %}desktop-link-active{% else %}desktop-link{% endif %}">Home</a>
+                        <a href="{% url 'attendance:dashboard' %}" class="{% if '/dashboard/' in request.path %}desktop-link-active{% else %}desktop-link{% endif %}">Dashboard</a>
+                        <a href="{% url 'attendance:event-list' %}" class="{% if '/dashboard/events/' in request.path %}desktop-link-active{% else %}desktop-link{% endif %}">Events</a>
+                        <form method="post" action="{% url 'attendance:logout' %}">
+                            {% csrf_token %}
+                            <button type="submit" class="btn-accent px-3 py-2" data-loading>Logout</button>
+                        </form>
+                    </nav>
+                    <div class="flex items-center gap-2 md:hidden">
+                        <a href="{% url 'attendance:home' %}" class="desktop-link">Home</a>
+                        <form method="post" action="{% url 'attendance:logout' %}">
+                            {% csrf_token %}
+                            <button type="submit" class="btn-accent px-3 py-2" data-loading>Logout</button>
+                        </form>
+                    </div>
+                {% else %}
+                    <a href="{% url 'attendance:login' %}" class="btn-accent px-3 py-2">Login</a>
+                {% endif %}
+            </div>
+        </header>
+
+        <main class="mx-auto w-full max-w-6xl px-4 py-6 sm:px-6 lg:px-8 lg:py-10">
+            {% block content %}{% endblock %}
+        </main>
+
+        {% if request.user.is_authenticated %}
+            <nav class="fixed inset-x-0 bottom-0 z-30 border-t border-gray-200 bg-white md:hidden">
+                <div class="mx-auto grid max-w-6xl grid-cols-3">
+                    <a href="{% url 'attendance:dashboard' %}" class="flex flex-col items-center gap-1 px-3 py-2 text-xs {% if '/dashboard/' in request.path and '/dashboard/events/' not in request.path and '/dashboard/custom-forms/' not in request.path %}text-rotary-blue{% else %}text-gray-500{% endif %}">
+                        <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h8V3H3zM13 21h8v-6h-8zM13 10h8V3h-8zM3 21h8v-7H3z"/></svg>
+                        <span>Dashboard</span>
+                    </a>
+                    <a href="{% url 'attendance:event-list' %}" class="flex flex-col items-center gap-1 px-3 py-2 text-xs {% if '/dashboard/events/' in request.path %}text-rotary-blue{% else %}text-gray-500{% endif %}">
+                        <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+                        <span>Events</span>
+                    </a>
+                    <a href="{% url 'attendance:custom-form-list' %}" class="flex flex-col items-center gap-1 px-3 py-2 text-xs {% if '/dashboard/custom-forms/' in request.path %}text-rotary-blue{% else %}text-gray-500{% endif %}">
+                        <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 3h6l3 3v15H6V3z"/><path d="M9 12h6M9 16h6M9 8h2"/></svg>
+                        <span>Forms</span>
+                    </a>
+                </div>
+            </nav>
+        {% endif %}
+    </div>
+
+    <div class="pointer-events-none fixed right-4 top-20 z-40 flex w-[calc(100%-2rem)] max-w-sm flex-col gap-2">
+        {% for message in messages %}
+            <div class="toast {% if 'error' in message.tags %}border-rose-200 bg-rose-50 text-rose-800{% elif 'warning' in message.tags %}border-amber-200 bg-amber-50 text-amber-800{% else %}border-emerald-200 bg-emerald-50 text-emerald-800{% endif %}" data-toast data-type="{{ message.tags|default:'success' }}">
+                <div class="flex items-start justify-between gap-3">
+                    <p>{{ message }}</p>
+                    <button type="button" class="text-xs font-semibold uppercase" data-toast-close>Dismiss</button>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+
+    <div id="confirm-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/40 p-4">
+        <div class="w-full max-w-md rounded-2xl bg-white p-5 shadow-xl">
+            <h3 class="text-lg font-semibold text-[#1F2937]">Confirm action</h3>
+            <p id="confirm-message" class="mt-2 text-sm text-gray-600">Are you sure?</p>
+            <div class="mt-4 flex justify-end gap-2">
+                <button type="button" class="btn-secondary" id="confirm-cancel">Cancel</button>
+                <button type="button" class="btn-accent" id="confirm-proceed">Yes, continue</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    (() => {
+        const timeoutByType = { success: 3000, warning: 6000, error: 10000 };
+        document.querySelectorAll("[data-toast]").forEach((toast) => {
+            const typeTag = toast.dataset.type || "success";
+            const type = typeTag.includes("error") ? "error" : typeTag.includes("warning") ? "warning" : "success";
+            const timeout = timeoutByType[type] || 3000;
+            const remove = () => toast.remove();
+            toast.querySelector("[data-toast-close]")?.addEventListener("click", remove);
+            setTimeout(remove, timeout);
+        });
+
+        document.querySelectorAll("form").forEach((form) => {
+            form.addEventListener("submit", (e) => {
+                const submitter = e.submitter || form.querySelector("button[type='submit'],button:not([type])");
+                if (!submitter || submitter.dataset.noLoader === "true" || submitter.dataset.confirm === "true") return;
+                submitter.disabled = true;
+                submitter.innerHTML = '<span class="h-4 w-4 animate-spin rounded-full border-2 border-white/60 border-t-transparent"></span><span>Please wait...</span>';
+            });
+        });
+
+        const modal = document.getElementById("confirm-modal");
+        const messageEl = document.getElementById("confirm-message");
+        const cancelBtn = document.getElementById("confirm-cancel");
+        const proceedBtn = document.getElementById("confirm-proceed");
+        let pendingForm = null;
+        let pendingButton = null;
+
+        document.querySelectorAll("[data-confirm='true']").forEach((btn) => {
+            btn.addEventListener("click", (e) => {
+                e.preventDefault();
+                pendingForm = btn.closest("form");
+                pendingButton = btn;
+                messageEl.textContent = btn.dataset.confirmMessage || "Are you sure you want to continue?";
+                modal.classList.remove("hidden");
+                modal.classList.add("flex");
+            });
+        });
+
+        cancelBtn?.addEventListener("click", () => {
+            modal.classList.add("hidden");
+            modal.classList.remove("flex");
+            pendingForm = null;
+            pendingButton = null;
+        });
+        proceedBtn?.addEventListener("click", () => {
+            if (pendingForm) {
+                if (pendingButton) {
+                    pendingButton.disabled = true;
+                    pendingButton.innerHTML = '<span class="h-4 w-4 animate-spin rounded-full border-2 border-white/60 border-t-transparent"></span><span>Please wait...</span>';
+                }
+                pendingForm.submit();
+            }
+            modal.classList.add("hidden");
+            modal.classList.remove("flex");
+        });
+    })();
+    </script>
+</body>
+</html>

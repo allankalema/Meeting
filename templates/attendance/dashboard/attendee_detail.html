@@ -1,0 +1,30 @@
+{% extends "attendance/base.html" %}
+{% block title %}{{ attendee.full_name }}{% endblock %}
+{% block content %}
+<section class="space-y-6">
+    <div class="card p-6 sm:p-8">
+        <h1 class="text-2xl font-bold text-[#1F2937]">{{ attendee.full_name }}</h1>
+        <p class="mt-1 text-sm text-gray-600">{{ attendee.email|default:"No email" }}{% if attendee.phone %} - {{ attendee.phone }}{% endif %}</p>
+        <div class="mt-4 grid gap-3 text-sm sm:grid-cols-2">
+            <div class="rounded-xl border border-gray-200 bg-[#F8F9FB] p-3"><span class="font-semibold text-rotary-blue">Category:</span> {{ attendee.get_category_display }}</div>
+            <div class="rounded-xl border border-gray-200 bg-[#F8F9FB] p-3"><span class="font-semibold text-rotary-blue">Preferred contact:</span> {{ attendee.get_communication_preference_display }}</div>
+            <div class="rounded-xl border border-gray-200 bg-[#F8F9FB] p-3"><span class="font-semibold text-rotary-blue">Rotary club:</span> {{ attendee.rotary_club|default:"-" }}</div>
+            <div class="rounded-xl border border-gray-200 bg-[#F8F9FB] p-3"><span class="font-semibold text-rotary-blue">Rotaract club:</span> {{ attendee.rotaract_club|default:"-" }}</div>
+        </div>
+    </div>
+
+    <div class="card">
+        <h2 class="text-lg font-semibold text-[#1F2937]">Attendance history</h2>
+        <div class="mt-4 space-y-3">
+            {% for item in history %}
+                <div class="rounded-xl border border-gray-200 p-4">
+                    <p class="font-semibold text-[#1F2937]">{{ item.event.title }}</p>
+                    <p class="text-sm text-gray-600">{{ item.confirmed_at|date:"D, d M Y g:i A" }}</p>
+                </div>
+            {% empty %}
+                <p class="rounded-xl border border-gray-200 bg-[#F8F9FB] px-4 py-3 text-sm text-gray-500">No attendance records for this attendee yet.</p>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endblock %}

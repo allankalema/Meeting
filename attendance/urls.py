@@ -1,0 +1,67 @@
+from django.urls import path
+
+from .views import (
+    AttendeeDetailView,
+    AttendeeListView,
+    BroadcastCreateView,
+    CustomFormCreateView,
+    CustomFormDetailView,
+    CustomFormListView,
+    DashboardView,
+    EventCreateView,
+    EventDetailView,
+    EventListView,
+    EventLookupView,
+    EventWizardView,
+    HomeView,
+    UserLoginView,
+    UserLogoutView,
+    custom_form_add_field_view,
+    custom_form_public_view,
+    custom_form_send_invites_view,
+    custom_form_toggle_view,
+    event_attendance_view,
+    event_qr_download_view,
+    event_send_invites_view,
+    event_toggle_link_view,
+)
+
+app_name = "attendance"
+
+urlpatterns = [
+    path("", HomeView.as_view(), name="home"),
+    path("login/", UserLoginView.as_view(), name="login"),
+    path("logout/", UserLogoutView.as_view(), name="logout"),
+    path("dashboard/", DashboardView.as_view(), name="dashboard"),
+    path("dashboard/alerts/new/", BroadcastCreateView.as_view(), name="broadcast-create"),
+    path("dashboard/events/", EventListView.as_view(), name="event-list"),
+    path("dashboard/events/create/", EventWizardView.as_view(), name="event-wizard"),
+    path("dashboard/events/create/basic/", EventCreateView.as_view(), name="event-create"),
+    path("dashboard/events/<uuid:public_id>/", EventDetailView.as_view(), name="event-detail"),
+    path("dashboard/events/<uuid:public_id>/send-invites/", event_send_invites_view, name="event-send-invites"),
+    path("dashboard/events/<uuid:public_id>/toggle-link/", event_toggle_link_view, name="event-toggle-link"),
+    path("dashboard/events/<uuid:public_id>/qr.svg", event_qr_download_view, name="event-qr-download"),
+    path("dashboard/custom-forms/", CustomFormListView.as_view(), name="custom-form-list"),
+    path("dashboard/custom-forms/create/", CustomFormCreateView.as_view(), name="custom-form-create"),
+    path("dashboard/custom-forms/<uuid:public_id>/", CustomFormDetailView.as_view(), name="custom-form-detail"),
+    path(
+        "dashboard/custom-forms/<uuid:public_id>/add-field/",
+        custom_form_add_field_view,
+        name="custom-form-add-field",
+    ),
+    path(
+        "dashboard/custom-forms/<uuid:public_id>/toggle/",
+        custom_form_toggle_view,
+        name="custom-form-toggle",
+    ),
+    path(
+        "dashboard/custom-forms/<uuid:public_id>/send-invites/",
+        custom_form_send_invites_view,
+        name="custom-form-send-invites",
+    ),
+    path("dashboard/attendees/", AttendeeListView.as_view(), name="attendee-list"),
+    path("dashboard/attendees/<int:pk>/", AttendeeDetailView.as_view(), name="attendee-detail"),
+    path("e/<uuid:public_id>/", event_attendance_view, name="event-public"),
+    path("e/<uuid:public_id>/lookup/", EventLookupView.as_view(), name="event-lookup"),
+    path("f/<uuid:public_id>/", custom_form_public_view, name="custom-form-public"),
+]

@@ -1,0 +1,5 @@
+Kampala Early Bird - Rotary Club
+
+{{ title }}
+
+{{ body }}

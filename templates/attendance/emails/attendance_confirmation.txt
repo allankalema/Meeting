@@ -1,0 +1,10 @@
+Hello {{ attendee.full_name }},
+
+Your attendance has been confirmed for:
+{{ event.title }}
+
+Date: {{ event.event_date|date:"D, d M Y g:i A" }}
+{% if event.venue %}Venue: {{ event.venue }}{% endif %}
+
+Thank you for confirming your presence.
+Kampala Early Bird - Rotary Club

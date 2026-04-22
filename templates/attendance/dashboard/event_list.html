@@ -1,0 +1,42 @@
+{% extends "attendance/base.html" %}
+{% block title %}Events{% endblock %}
+{% block content %}
+<section class="space-y-5">
+    <div class="flex items-center justify-between gap-3">
+        <div>
+            <h1 class="text-2xl font-bold text-[#1F2937]">Events</h1>
+            <p class="text-sm text-gray-600">Search, open, and manage meeting registration links.</p>
+        </div>
+        <a href="{% url 'attendance:event-wizard' %}" class="btn-primary">Create event</a>
+    </div>
+
+    <form method="get" class="card p-3">
+        <div class="flex gap-2">
+            <input type="text" name="q" value="{{ q }}" placeholder="Search by event title, venue, or note" class="input-field mt-0 py-2">
+            <button class="btn-secondary" type="submit">Search</button>
+        </div>
+    </form>
+
+    <div class="grid gap-4 lg:grid-cols-2">
+        {% for event in events %}
+            <a href="{% url 'attendance:event-detail' public_id=event.public_id %}" class="card block transition duration-200 ease-in-out hover:shadow-lg">
+                <div class="flex flex-wrap items-center justify-between gap-2">
+                    <h2 class="text-lg font-semibold text-[#1F2937]">{{ event.title }}</h2>
+                    <span class="rounded-full px-3 py-1 text-xs font-semibold {% if event.is_link_active %}bg-rotary-gold/20 text-rotary-blue{% else %}bg-gray-100 text-gray-600{% endif %}">
+                        {% if event.is_link_active %}Link Active{% else %}Link Off{% endif %}
+                    </span>
+                </div>
+                <p class="mt-1 text-sm text-gray-600">{{ event.event_date|date:"D, d M Y - g:i A" }}{% if event.venue %} - {{ event.venue }}{% endif %}</p>
+                <div class="mt-3 flex items-center justify-between text-xs text-gray-500">
+                    <p>{{ event.attendance_total }} attendance record{{ event.attendance_total|pluralize }}</p>
+                    <p>{% if event.form_template_id %}Custom Form{% else %}Default Form{% endif %}</p>
+                </div>
+            </a>
+        {% empty %}
+            <div class="card border-dashed text-center lg:col-span-2">
+                <p class="text-sm text-gray-600">No events found.</p>
+            </div>
+        {% endfor %}
+    </div>
+</section>
+{% endblock %}

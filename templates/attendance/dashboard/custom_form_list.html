@@ -1,0 +1,29 @@
+{% extends "attendance/base.html" %}
+{% block title %}Custom Forms{% endblock %}
+{% block content %}
+<section class="space-y-5">
+    <div class="flex items-center justify-between">
+        <div>
+            <h1 class="text-2xl font-bold text-[#1F2937]">Custom Forms</h1>
+            <p class="text-sm text-gray-600">Build your own form structures and collect submissions.</p>
+        </div>
+        <a href="{% url 'attendance:custom-form-create' %}" class="btn-primary">Create Custom Form</a>
+    </div>
+    <div class="space-y-3">
+        {% for custom_form in custom_forms %}
+            <a href="{% url 'attendance:custom-form-detail' public_id=custom_form.public_id %}" class="card block transition hover:shadow-lg">
+                <div class="flex items-center justify-between gap-2">
+                    <h2 class="text-lg font-semibold text-[#1F2937]">{{ custom_form.title }}</h2>
+                    <span class="rounded-full px-3 py-1 text-xs font-semibold {% if custom_form.is_active %}bg-rotary-gold/20 text-rotary-blue{% else %}bg-gray-100 text-gray-700{% endif %}">
+                        {% if custom_form.is_active %}Active{% else %}Inactive{% endif %}
+                    </span>
+                </div>
+                <p class="mt-2 text-sm text-gray-600">{{ custom_form.description|default:"No description" }}</p>
+                <p class="mt-2 text-xs text-gray-500">{{ custom_form.submission_total }} submission{{ custom_form.submission_total|pluralize }}</p>
+            </a>
+        {% empty %}
+            <div class="card text-sm text-gray-600">No custom forms yet.</div>
+        {% endfor %}
+    </div>
+</section>
+{% endblock %}

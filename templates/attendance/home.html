@@ -1,0 +1,42 @@
+{% extends "attendance/base.html" %}
+{% load static %}
+{% block title %}Kampala Early Bird - Rotary Club{% endblock %}
+{% block content %}
+<section class="space-y-8">
+    <div class="card overflow-hidden border-rotary-blue/20 p-0">
+        <div class="grid items-stretch lg:grid-cols-2">
+            <div class="bg-gradient-to-br from-rotary-blue to-rotary-blue-700 p-7 text-white sm:p-10">
+                <div class="flex items-center gap-3">
+                    <img src="{% static 'logo.jpg' %}" alt="Kampala Early Bird logo" class="h-16 w-16 rounded-xl border border-white/40 object-cover">
+                    <div>
+                        <p class="text-xs uppercase tracking-[0.2em] text-rotary-gold">Kampala Early Bird</p>
+                        <h1 class="text-2xl font-bold sm:text-3xl">Rotary Club</h1>
+                    </div>
+                </div>
+                <p class="mt-6 max-w-lg text-sm text-white/90 sm:text-base">
+                    A modern attendance and engagement platform for meetings, events, and communication.
+                    Members can check in faster, while organizers manage events and outreach in one place.
+                </p>
+                <div class="mt-7 flex flex-wrap gap-3">
+                    {% if request.user.is_authenticated %}
+                        <a href="{% url 'attendance:dashboard' %}" class="btn-accent">Open Dashboard</a>
+                    {% else %}
+                        <a href="{% url 'attendance:login' %}" class="btn-accent">Organizer Login</a>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="flex flex-col justify-center bg-[#F8F9FB] p-7 sm:p-10">
+                <h2 class="text-lg font-semibold text-[#1F2937]">Public Check-in</h2>
+                <p class="mt-2 text-sm text-gray-600">Use your event link or QR to open the registration form for that meeting.</p>
+                <p class="mt-5 text-sm text-gray-500">Organizer features include:</p>
+                <ul class="mt-3 space-y-2 text-sm text-gray-700">
+                    <li class="flex items-center gap-2"><span class="h-2 w-2 rounded-full bg-rotary-gold"></span> Event and QR management</li>
+                    <li class="flex items-center gap-2"><span class="h-2 w-2 rounded-full bg-rotary-gold"></span> Default and custom forms</li>
+                    <li class="flex items-center gap-2"><span class="h-2 w-2 rounded-full bg-rotary-gold"></span> Email invites and club alerts</li>
+                    <li class="flex items-center gap-2"><span class="h-2 w-2 rounded-full bg-rotary-gold"></span> Attendance and participation analytics</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

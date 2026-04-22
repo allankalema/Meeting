@@ -1,0 +1,34 @@
+{% extends "attendance/base.html" %}
+{% block title %}Create Event{% endblock %}
+{% block content %}
+<section class="mx-auto max-w-2xl">
+    <div class="card p-6 sm:p-8">
+        <h1 class="text-2xl font-bold text-[#1F2937]">Create event</h1>
+        <p class="mt-1 text-sm text-gray-600">A QR code and shareable attendance link will be generated automatically.</p>
+        <form method="post" class="mt-5 space-y-4">
+            {% csrf_token %}
+            {% if form.non_field_errors %}
+                <div class="rounded-xl border border-rotary-gold/40 bg-rotary-gold/10 px-4 py-3 text-sm text-[#1F2937]">
+                    {% for error in form.non_field_errors %}<p>{{ error }}</p>{% endfor %}
+                </div>
+            {% endif %}
+            {% for field in form %}
+                <div>
+                    {% if field.field.widget.input_type == "checkbox" %}
+                        <label for="{{ field.id_for_label }}" class="flex items-start gap-3 text-sm text-gray-700">
+                            {{ field }}
+                            <span class="font-medium">{{ field.label }}</span>
+                        </label>
+                    {% else %}
+                        <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
+                        {{ field }}
+                    {% endif %}
+                    {% if field.help_text %}<p class="mt-1 text-xs text-gray-500">{{ field.help_text }}</p>{% endif %}
+                    {% for error in field.errors %}<p class="mt-1 text-xs text-rotary-blue">{{ error }}</p>{% endfor %}
+                </div>
+            {% endfor %}
+            <button class="btn-primary w-full">Create event</button>
+        </form>
+    </div>
+</section>
+{% endblock %}

@@ -1,0 +1,30 @@
+{% extends "attendance/base.html" %}
+{% block title %}Attendees{% endblock %}
+{% block content %}
+<section class="space-y-5">
+    <div>
+        <h1 class="text-2xl font-bold text-[#1F2937]">Attendees</h1>
+        <p class="text-sm text-gray-600">Search all saved attendee profiles and open attendance history.</p>
+    </div>
+    <form method="get" class="card p-3">
+        <label for="q" class="sr-only">Search attendee</label>
+        <div class="flex gap-2">
+            <input id="q" name="q" value="{{ q }}" placeholder="Search by name, email, or phone" class="input-field mt-0 py-2">
+            <button class="btn-primary">Search</button>
+        </div>
+    </form>
+    <div class="space-y-3">
+        {% for attendee in attendees %}
+            <a href="{% url 'attendance:attendee-detail' pk=attendee.pk %}" class="card block p-4 transition duration-200 ease-in-out hover:scale-[1.01] hover:shadow-lg">
+                <div class="flex flex-wrap items-center justify-between gap-2">
+                    <p class="font-semibold text-[#1F2937]">{{ attendee.full_name }}</p>
+                    <span class="rounded-full bg-rotary-gold/20 px-2 py-1 text-xs text-rotary-blue">{{ attendee.attendance_total }} attendance{{ attendee.attendance_total|pluralize }}</span>
+                </div>
+                <p class="mt-1 text-sm text-gray-600">{{ attendee.email|default:"No email" }}{% if attendee.phone %} - {{ attendee.phone }}{% endif %}</p>
+            </a>
+        {% empty %}
+            <p class="card border-dashed p-8 text-center text-sm text-gray-500">No attendee profiles yet.</p>
+        {% endfor %}
+    </div>
+</section>
+{% endblock %}

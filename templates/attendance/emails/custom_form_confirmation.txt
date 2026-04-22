@@ -1,0 +1,6 @@
+Hello,
+
+Your submission for "{{ custom_form.title }}" has been received.
+
+Thank you,
+Kampala Early Bird - Rotary Club

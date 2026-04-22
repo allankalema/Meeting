@@ -1,0 +1,9 @@
+Kampala Early Bird - Rotary Club
+
+New event registration is now open:
+{{ custom_form.title }}
+
+{{ custom_form.description }}
+
+Open form:
+{{ form_url }}

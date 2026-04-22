@@ -1,0 +1,10 @@
+Kampala Early Bird - Rotary Club
+
+New meeting announcement:
+{{ event.title }}
+
+Date: {{ event.event_date|date:"D, d M Y g:i A" }}
+{% if event.venue %}Venue: {{ event.venue }}{% endif %}
+
+Register here:
+{{ event_url }}

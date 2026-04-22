@@ -1,0 +1,28 @@
+{% extends "attendance/base.html" %}
+{% block title %}Create Custom Form{% endblock %}
+{% block content %}
+<section class="mx-auto max-w-2xl">
+    <div class="card p-6 sm:p-8">
+        <h1 class="text-2xl font-bold text-[#1F2937]">Create Custom Form</h1>
+        <p class="mt-1 text-sm text-gray-600">After creating, add fields and publish immediately.</p>
+        <form method="post" class="mt-5 space-y-4">
+            {% csrf_token %}
+            {% for field in form %}
+                <div>
+                    {% if field.field.widget.input_type == "checkbox" %}
+                        <label for="{{ field.id_for_label }}" class="flex items-start gap-3 text-sm text-gray-700">
+                            {{ field }}
+                            <span class="font-medium">{{ field.label }}</span>
+                        </label>
+                    {% else %}
+                        <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
+                        {{ field }}
+                    {% endif %}
+                    {% for error in field.errors %}<p class="mt-1 text-xs text-rotary-blue">{{ error }}</p>{% endfor %}
+                </div>
+            {% endfor %}
+            <button class="btn-primary w-full py-3">Create Form</button>
+        </form>
+    </div>
+</section>
+{% endblock %}

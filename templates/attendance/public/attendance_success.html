@@ -1,0 +1,19 @@
+{% extends "attendance/base.html" %}
+{% load static %}
+{% block title %}Attendance Confirmed{% endblock %}
+{% block content %}
+<section class="mx-auto max-w-xl">
+    <div class="card animate-fadeUp p-6 text-center sm:p-8">
+        <img src="{% static 'logo.jpg' %}" alt="Kampala Early Bird Rotary Club logo" class="mx-auto h-16 w-16 rounded-full border border-rotary-blue/20 object-cover shadow-sm">
+        <div class="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-rotary-gold/15 text-rotary-blue">
+            <svg viewBox="0 0 24 24" class="h-8 w-8" fill="none" stroke="currentColor" stroke-width="2.2">
+                <path d="M5 13l4 4L19 7"></path>
+            </svg>
+        </div>
+        <h1 class="mt-4 text-2xl font-bold text-[#1F2937]">Attendance confirmed</h1>
+        <p class="mt-2 text-sm text-gray-600">Thank you, {{ attendee.full_name }}. You are checked in for <strong>{{ event.title }}</strong>.</p>
+        <p class="mt-2 text-sm text-gray-600">Your details are saved for future events, and this attendance has been recorded.</p>
+        <a href="{% url 'attendance:event-public' public_id=event.public_id %}" class="btn-secondary mt-6">Return to form</a>
+    </div>
+</section>
+{% endblock %}

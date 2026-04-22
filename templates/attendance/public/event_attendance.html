@@ -1,0 +1,187 @@
+{% extends "attendance/base.html" %}
+{% load static %}
+{% block title %}{{ event.title }} | Kampala Early Bird - Rotary Club{% endblock %}
+{% block content %}
+<section class="mx-auto max-w-2xl space-y-5">
+    <div class="card animate-fadeUp overflow-hidden border-rotary-blue/20 p-0">
+        <div class="bg-gradient-to-r from-rotary-blue to-rotary-blue-700 px-5 py-6 text-white sm:px-7">
+            <div class="flex items-center gap-3">
+                <img src="{% static 'logo.jpg' %}" alt="Kampala Early Bird Rotary Club logo" class="h-14 w-14 rounded-full border border-white/50 object-cover shadow">
+                <div>
+                    <p class="text-xs font-semibold uppercase tracking-wide text-rotary-gold">Kampala Early Bird - Rotary Club</p>
+                    <h1 class="mt-1 text-xl font-bold sm:text-2xl">{{ event.title }}</h1>
+                </div>
+            </div>
+        </div>
+        <div class="px-5 py-5 sm:px-7">
+            <p class="text-sm text-gray-700">{{ event.event_date|date:"D, d M Y - g:i A" }}{% if event.venue %} - {{ event.venue }}{% endif %}</p>
+            {% if event.description %}
+                <p class="mt-2 text-sm text-gray-600">{{ event.description }}</p>
+            {% endif %}
+            <p class="mt-2 text-sm text-gray-600">Fellow Rotarian, Rotaractor or Guest, please register your attendance below.</p>
+            {% if event.status != "open" %}
+                <div class="mt-4 rounded-xl border border-rotary-gold/50 bg-rotary-gold/10 px-4 py-3 text-sm text-[#1F2937]">
+                    This event is currently closed for attendance confirmation.
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="card animate-fadeUp border-rotary-gold/30 bg-gradient-to-br from-white via-white to-rotary-gold/5 p-5 sm:p-7">
+        <h2 class="text-lg font-semibold text-[#1F2937]">Confirm your presence</h2>
+        <p class="mt-1 text-sm text-gray-600">Enter your email or contact. If you have attended before, details will appear automatically.</p>
+
+        {% if form.non_field_errors %}
+            <div class="mt-4 rounded-xl border border-rotary-gold/40 bg-rotary-gold/10 px-4 py-3 text-sm text-[#1F2937]">
+                {% for error in form.non_field_errors %}<p>{{ error }}</p>{% endfor %}
+            </div>
+        {% endif %}
+
+        <form method="post" class="mt-5 space-y-4" id="attendance-form">
+            {% csrf_token %}
+            {{ form.source }}
+            <div class="grid gap-4 sm:grid-cols-2">
+                <div>
+                    <label for="{{ form.email.id_for_label }}" class="form-label">Email</label>
+                    {{ form.email }}
+                    {% for error in form.email.errors %}<p class="mt-1 text-xs text-rotary-blue">{{ error }}</p>{% endfor %}
+                </div>
+                <div>
+                    <label for="{{ form.phone.id_for_label }}" class="form-label">Contact</label>
+                    {{ form.phone }}
+                    {% for error in form.phone.errors %}<p class="mt-1 text-xs text-rotary-blue">{{ error }}</p>{% endfor %}
+                </div>
+            </div>
+
+            <div id="lookup-message" class="hidden rounded-xl px-4 py-3 text-sm"></div>
+
+            <div id="autofill-panel" class="grid gap-4 rounded-xl border border-gray-200 bg-white/80 p-3 sm:grid-cols-2">
+                <div>
+                    <label for="{{ form.category.id_for_label }}" class="form-label">{{ form.category.label }}</label>
+                    {{ form.category }}
+                    {% for error in form.category.errors %}<p class="mt-1 text-xs text-rotary-blue">{{ error }}</p>{% endfor %}
+                </div>
+                <div>
+                    <label for="{{ form.communication_preference.id_for_label }}" class="form-label">{{ form.communication_preference.label }}</label>
+                    {{ form.communication_preference }}
+                    {% for error in form.communication_preference.errors %}<p class="mt-1 text-xs text-rotary-blue">{{ error }}</p>{% endfor %}
+                </div>
+                <div class="sm:col-span-2">
+                    <label for="{{ form.full_name.id_for_label }}" class="form-label">Full Name *</label>
+                    {{ form.full_name }}
+                    {% for error in form.full_name.errors %}<p class="mt-1 text-xs text-rotary-blue">{{ error }}</p>{% endfor %}
+                </div>
+                <div>
+                    <label for="{{ form.rotary_club.id_for_label }}" class="form-label">Rotary Club *</label>
+                    {{ form.rotary_club }}
+                    {% for error in form.rotary_club.errors %}<p class="mt-1 text-xs text-rotary-blue">{{ error }}</p>{% endfor %}
+                </div>
+                <div>
+                    <label for="{{ form.rotaract_club.id_for_label }}" class="form-label">Rotaract Club *</label>
+                    {{ form.rotaract_club }}
+                    {% for error in form.rotaract_club.errors %}<p class="mt-1 text-xs text-rotary-blue">{{ error }}</p>{% endfor %}
+                </div>
+                <div class="sm:col-span-2">
+                    <label for="{{ form.additional_comments.id_for_label }}" class="form-label">Additional Comments (Optional)</label>
+                    {{ form.additional_comments }}
+                </div>
+                <div class="sm:col-span-2 rounded-xl border border-gray-200 bg-[#F8F9FB] px-4 py-3">
+                    <label for="{{ form.receive_future_emails.id_for_label }}" class="flex items-start gap-3 text-sm text-gray-700">
+                        {{ form.receive_future_emails }}
+                        <span>I want to receive emails about future meetings and communications from Kampala Early Bird - Rotary Club.</span>
+                    </label>
+                    {% for error in form.receive_future_emails.errors %}<p class="mt-1 text-xs text-rotary-blue">{{ error }}</p>{% endfor %}
+                </div>
+            </div>
+
+            <button {% if event.status != "open" %}disabled{% endif %}
+                    class="btn-accent w-full py-3 text-base shadow-md disabled:cursor-not-allowed disabled:bg-gray-300"
+                    data-loading>
+                Submit Attendance
+            </button>
+        </form>
+    </div>
+</section>
+
+<script>
+    (() => {
+        const email = document.getElementById("id_email");
+        const phone = document.getElementById("id_phone");
+        const lookupMessage = document.getElementById("lookup-message");
+        const autofillPanel = document.getElementById("autofill-panel");
+        const csrfToken = document.querySelector("input[name='csrfmiddlewaretoken']")?.value;
+        const endpoint = "{% url 'attendance:event-lookup' public_id=event.public_id %}";
+        const fields = [
+            "full_name", "email", "phone", "category", "rotary_club",
+            "rotaract_club", "communication_preference", "additional_comments"
+        ];
+
+        let pending;
+        function hideMessage() {
+            lookupMessage.className = "hidden rounded-xl px-4 py-3 text-sm";
+            lookupMessage.textContent = "";
+        }
+
+        function notifyFound(text) {
+            lookupMessage.className = "rounded-xl border border-rotary-gold/50 bg-rotary-gold/10 px-4 py-3 text-sm text-[#1F2937]";
+            lookupMessage.textContent = text;
+        }
+
+        function notifyError(text) {
+            lookupMessage.className = "rounded-xl border border-rotary-blue/40 bg-rotary-blue/10 px-4 py-3 text-sm text-rotary-blue";
+            lookupMessage.textContent = text;
+        }
+
+        function fillAttendee(data) {
+            fields.forEach((name) => {
+                const input = document.getElementById(`id_${name}`);
+                if (input && data[name] !== undefined) {
+                    input.value = data[name];
+                }
+            });
+            const receiveUpdates = document.getElementById("id_receive_future_emails");
+            if (receiveUpdates && data.receive_future_emails !== undefined) {
+                receiveUpdates.checked = Boolean(data.receive_future_emails);
+            }
+        }
+
+        async function runLookup() {
+            const emailValue = (email.value || "").trim();
+            const phoneValue = (phone.value || "").trim();
+            if (!emailValue && !phoneValue) {
+                hideMessage();
+                autofillPanel.classList.remove("bg-rotary-gold/10", "border-rotary-gold/40");
+                return;
+            }
+            if (pending) {
+                window.clearTimeout(pending);
+            }
+            pending = window.setTimeout(async () => {
+                const body = new URLSearchParams({ email: emailValue, phone: phoneValue });
+                const response = await fetch(endpoint, {
+                    method: "POST",
+                    headers: { "X-CSRFToken": csrfToken, "X-Requested-With": "XMLHttpRequest" },
+                    body
+                });
+                const result = await response.json();
+                if (response.status === 409) {
+                    notifyError(result.message || "Please confirm your email/contact details.");
+                    autofillPanel.classList.remove("bg-rotary-gold/10", "border-rotary-gold/40");
+                    return;
+                }
+                if (result.found) {
+                    fillAttendee(result.attendee);
+                    notifyFound("Is this your information?");
+                    autofillPanel.classList.add("bg-rotary-gold/10", "border-rotary-gold/40");
+                    return;
+                }
+                hideMessage();
+                autofillPanel.classList.remove("bg-rotary-gold/10", "border-rotary-gold/40");
+            }, 250);
+        }
+
+        email?.addEventListener("blur", runLookup);
+        phone?.addEventListener("blur", runLookup);
+    })();
+</script>
+{% endblock %}
