@@ -82,17 +82,36 @@
 
     <div class="card">
         <h2 class="text-lg font-semibold text-[#1F2937]">Recent event submissions</h2>
-        <div class="mt-4 space-y-3">
-            {% for sub in submissions %}
-                <div class="rounded-xl border border-gray-200 px-4 py-3">
-                    <p class="font-medium text-[#1F2937]">{{ sub.email|default:"No email" }}{% if sub.phone %} - {{ sub.phone }}{% endif %}</p>
-                    <p class="text-xs text-gray-500">{{ sub.submitted_at|date:"d M Y g:i A" }}</p>
-                    <pre class="mt-2 overflow-auto rounded bg-[#F8F9FB] p-2 text-xs text-gray-700">{{ sub.payload }}</pre>
-                </div>
-            {% empty %}
-                <p class="text-sm text-gray-500">No submissions yet.</p>
-            {% endfor %}
-        </div>
+        {% if submission_rows %}
+            <div class="mt-4 overflow-x-auto rounded-xl border border-gray-200">
+                <table class="min-w-full divide-y divide-gray-200 text-sm">
+                    <thead class="bg-[#F8F9FB]">
+                        <tr>
+                            <th class="whitespace-nowrap px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">Email</th>
+                            <th class="whitespace-nowrap px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">Contact</th>
+                            <th class="whitespace-nowrap px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">Submitted</th>
+                            {% for col in submission_columns %}
+                                <th class="whitespace-nowrap px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">{{ col.label }}</th>
+                            {% endfor %}
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-100 bg-white">
+                        {% for row in submission_rows %}
+                            <tr class="align-top">
+                                <td class="whitespace-nowrap px-3 py-2 text-gray-800">{{ row.email }}</td>
+                                <td class="whitespace-nowrap px-3 py-2 text-gray-700">{{ row.phone }}</td>
+                                <td class="whitespace-nowrap px-3 py-2 text-gray-600">{{ row.submitted_at|date:"d M Y g:i A" }}</td>
+                                {% for value in row.values %}
+                                    <td class="whitespace-nowrap px-3 py-2 text-gray-700">{{ value }}</td>
+                                {% endfor %}
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <p class="mt-4 text-sm text-gray-500">No submissions yet.</p>
+        {% endif %}
     </div>
 </section>
 

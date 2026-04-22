@@ -455,10 +455,43 @@ class CustomFormDetailView(LoginRequiredMixin, DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         custom_form = self.object
+        submissions = list(custom_form.submissions.select_related("attendee").all()[:50])
+
+        # Use form field order for table columns, then append any payload keys not defined.
+        ordered_fields = list(custom_form.fields.order_by("order", "id").values("key", "label"))
+        seen_keys = {f["key"] for f in ordered_fields}
+        extra_keys = []
+        for submission in submissions:
+            for key in submission.payload.keys():
+                if key not in seen_keys and key not in extra_keys:
+                    extra_keys.append(key)
+        columns = ordered_fields + [{"key": key, "label": key.replace("_", " ").title()} for key in extra_keys]
+
+        rows = []
+        for submission in submissions:
+            values = []
+            for col in columns:
+                value = submission.payload.get(col["key"], "")
+                if isinstance(value, bool):
+                    value = "Yes" if value else "No"
+                if value in ("", None):
+                    value = "-"
+                values.append(value)
+            rows.append(
+                {
+                    "email": submission.email or "-",
+                    "phone": submission.phone or "-",
+                    "submitted_at": submission.submitted_at,
+                    "values": values,
+                }
+            )
+
         context["field_form"] = kwargs.get("field_form") or CustomFormFieldWizardForm(
             initial={"order": (custom_form.fields.count() + 1)}
         )
-        context["submissions"] = custom_form.submissions.all()[:50]
+        context["submissions"] = submissions
+        context["submission_columns"] = columns
+        context["submission_rows"] = rows
         context["public_url"] = _absolute_public_url(custom_form.get_public_url())
         context["recipient_count"] = len(_consenting_emails())
         return context
