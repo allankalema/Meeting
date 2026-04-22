@@ -41,7 +41,7 @@ class Attendee(TimeStampedModel):
         default="both",
     )
     additional_comments = models.TextField(blank=True)
-    receive_future_emails = models.BooleanField(default=False)
+    receive_future_emails = models.BooleanField(default=True)
 
     class Meta:
         ordering = ["full_name"]
@@ -98,8 +98,6 @@ class Event(TimeStampedModel):
         return self.title
 
     def get_public_url(self):
-        if self.form_template_id:
-            return reverse("attendance:custom-form-public", kwargs={"public_id": self.form_template.public_id})
         return reverse("attendance:event-public", kwargs={"public_id": self.public_id})
 
 
@@ -199,7 +197,7 @@ class FormSubmission(models.Model):
     email = models.EmailField(blank=True, null=True)
     phone = models.CharField(max_length=30, blank=True, null=True)
     payload = models.JSONField(default=dict, blank=True)
-    receive_future_emails = models.BooleanField(default=False)
+    receive_future_emails = models.BooleanField(default=True)
     submitted_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:

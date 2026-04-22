@@ -72,7 +72,9 @@
                         </form>
                     </div>
                 {% else %}
-                    <a href="{% url 'attendance:login' %}" class="btn-accent px-3 py-2">Login</a>
+                    {% if request.path|slice:":3" != "/e/" and request.path|slice:":3" != "/f/" %}
+                        <a href="{% url 'attendance:login' %}" class="btn-accent px-3 py-2">Login</a>
+                    {% endif %}
                 {% endif %}
             </div>
         </header>

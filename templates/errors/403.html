@@ -1,0 +1,16 @@
+{% extends "attendance/base.html" %}
+{% load static %}
+{% block title %}Access Prohibited{% endblock %}
+{% block content %}
+<section class="mx-auto w-full max-w-xl">
+    <div class="card text-center">
+        <img src="{% static 'logo.jpg' %}" alt="Kampala Early Bird Rotary Club logo" class="mx-auto h-14 w-14 rounded-full border border-rotary-blue/20 object-cover">
+        <p class="mt-4 text-xs font-semibold uppercase tracking-[0.2em] text-rotary-gold">403</p>
+        <h1 class="mt-2 text-2xl font-bold text-rotary-blue">Access Prohibited</h1>
+        <p class="mt-3 text-sm text-gray-600">You do not have permission to access this page.</p>
+        <div class="mt-6 flex justify-center">
+            <a href="{% url 'attendance:home' %}" class="btn-primary">Back to Home</a>
+        </div>
+    </div>
+</section>
+{% endblock %}

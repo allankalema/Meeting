@@ -21,3 +21,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('attendance.urls')),
 ]
+
+handler403 = "attendance.views.custom_permission_denied_view"
+handler404 = "attendance.views.custom_page_not_found_view"
+handler500 = "attendance.views.custom_server_error_view"

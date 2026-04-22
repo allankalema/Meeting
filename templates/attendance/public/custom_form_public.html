@@ -15,17 +15,24 @@
         </div>
         <div class="px-6 py-5">
             <p class="text-sm text-gray-600">{{ custom_form.description|default:"Please fill in the form below." }}</p>
+            {% if event %}
+                <p class="mt-2 text-sm text-gray-700">{{ event.event_date|date:"D, d M Y - g:i A" }}{% if event.venue %} - {{ event.venue }}{% endif %}</p>
+            {% endif %}
         </div>
     </div>
 
     <div class="card p-6">
         <form method="post" class="space-y-4">
             {% csrf_token %}
+            {% if event %}
+                <input type="hidden" name="event_public_id" value="{{ event.public_id }}">
+            {% endif %}
             {% if runtime_form.non_field_errors %}
                 <div class="rounded-xl border border-rotary-blue/30 bg-rotary-blue/10 px-4 py-3 text-sm text-rotary-blue">
                     {% for error in runtime_form.non_field_errors %}<p>{{ error }}</p>{% endfor %}
                 </div>
             {% endif %}
+            <div id="lookup-message" class="hidden rounded-xl px-4 py-3 text-sm"></div>
             {% for field in runtime_form %}
                 <div>
                     <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
@@ -37,4 +44,77 @@
         </form>
     </div>
 </section>
+<script>
+    (() => {
+        const email = document.getElementById("id_email");
+        const phone = document.getElementById("id_phone");
+        const lookupMessage = document.getElementById("lookup-message");
+        const csrfToken = document.querySelector("input[name='csrfmiddlewaretoken']")?.value;
+        const endpoint = "{% url 'attendance:custom-form-lookup' public_id=custom_form.public_id %}";
+        let pending;
+
+        function hideMessage() {
+            lookupMessage.className = "hidden rounded-xl px-4 py-3 text-sm";
+            lookupMessage.textContent = "";
+        }
+
+        function notifyFound(text) {
+            lookupMessage.className = "rounded-xl border border-rotary-gold/50 bg-rotary-gold/10 px-4 py-3 text-sm text-[#1F2937]";
+            lookupMessage.textContent = text;
+        }
+
+        function notifyError(text) {
+            lookupMessage.className = "rounded-xl border border-rotary-blue/40 bg-rotary-blue/10 px-4 py-3 text-sm text-rotary-blue";
+            lookupMessage.textContent = text;
+        }
+
+        function applyData(result) {
+            const attendee = result.attendee || {};
+            const payload = attendee.payload || {};
+            if (email && attendee.email) email.value = attendee.email;
+            if (phone && attendee.phone) phone.value = attendee.phone;
+            Object.entries(payload).forEach(([key, value]) => {
+                const input = document.getElementById(`id_${key}`);
+                if (!input || value === null || value === undefined) return;
+                if (input.type === "checkbox") {
+                    input.checked = Boolean(value);
+                    return;
+                }
+                input.value = value;
+            });
+        }
+
+        async function runLookup() {
+            const emailValue = (email?.value || "").trim();
+            const phoneValue = (phone?.value || "").trim();
+            if (!emailValue && !phoneValue) {
+                hideMessage();
+                return;
+            }
+            if (pending) window.clearTimeout(pending);
+            pending = window.setTimeout(async () => {
+                const body = new URLSearchParams({ email: emailValue, phone: phoneValue });
+                const response = await fetch(endpoint, {
+                    method: "POST",
+                    headers: { "X-CSRFToken": csrfToken, "X-Requested-With": "XMLHttpRequest" },
+                    body,
+                });
+                const result = await response.json();
+                if (response.status === 409) {
+                    notifyError(result.message || "Please confirm your email/contact details.");
+                    return;
+                }
+                if (!result.found) {
+                    hideMessage();
+                    return;
+                }
+                applyData(result);
+                notifyFound("Is this your information?");
+            }, 250);
+        }
+
+        email?.addEventListener("blur", runLookup);
+        phone?.addEventListener("blur", runLookup);
+    })();
+</script>
 {% endblock %}

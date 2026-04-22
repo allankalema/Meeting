@@ -1,96 +1,28 @@
 {% extends "attendance/base.html" %}
 {% block title %}Create Event Wizard{% endblock %}
 {% block content %}
-<section class="space-y-5" id="event-wizard-root">
+<section class="mx-auto max-w-5xl space-y-5" id="event-wizard-root">
     <div class="card p-6">
         <h1 class="text-2xl font-bold text-[#1F2937]">Create Event Wizard</h1>
-        <p class="mt-1 text-sm text-gray-600">Follow the steps in order. You will only see one step at a time.</p>
+        <p class="mt-1 text-sm text-gray-600">Move step-by-step. The next step opens only after this one is complete.</p>
         <div class="mt-4 grid grid-cols-4 gap-2 text-xs font-semibold">
-            <div class="rounded-lg border px-3 py-2 text-center" data-step-indicator="1">1. Details</div>
-            <div class="rounded-lg border px-3 py-2 text-center" data-step-indicator="2">2. Form Type</div>
-            <div class="rounded-lg border px-3 py-2 text-center" data-step-indicator="3">3. Fields</div>
-            <div class="rounded-lg border px-3 py-2 text-center" data-step-indicator="4">4. Review</div>
+            <div class="rounded-lg border px-3 py-2 text-center transition-all duration-300" data-step-indicator="1">1. Details</div>
+            <div class="rounded-lg border px-3 py-2 text-center transition-all duration-300" data-step-indicator="2">2. Form Type</div>
+            <div class="rounded-lg border px-3 py-2 text-center transition-all duration-300" data-step-indicator="3">3. Fields</div>
+            <div class="rounded-lg border px-3 py-2 text-center transition-all duration-300" data-step-indicator="4">4. Review</div>
         </div>
     </div>
 
-    <div class="grid gap-6 lg:grid-cols-2">
-        <div class="card">
-            <form method="post" id="wizard-main-form" class="space-y-4">
-                {% csrf_token %}
-                <input type="hidden" name="action" id="wizard-action" value="create_event">
+    <div id="wizard-main-card" class="card p-6">
+        <form method="post" id="wizard-main-form" class="space-y-4">
+            {% csrf_token %}
+            <input type="hidden" name="action" id="wizard-action" value="create_event">
 
-                <div class="space-y-3" data-wizard-panel="1">
-                    <h2 class="text-lg font-semibold text-[#1F2937]">Step 1: Event Information</h2>
-                    {% for field in wizard_form %}
-                        {% if field.name != 'form_type' and field.name != 'send_invites_now' %}
-                            <div>
-                                {% if field.field.widget.input_type == "checkbox" %}
-                                    <label for="{{ field.id_for_label }}" class="flex items-start gap-3 text-sm text-gray-700">
-                                        {{ field }}
-                                        <span class="font-medium">{{ field.label }}</span>
-                                    </label>
-                                {% else %}
-                                    <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
-                                    {{ field }}
-                                {% endif %}
-                                {% for error in field.errors %}<p class="mt-1 text-xs text-rotary-blue">{{ error }}</p>{% endfor %}
-                            </div>
-                        {% endif %}
-                    {% endfor %}
-                    <div class="pt-2">
-                        <button type="button" class="btn-primary w-full" data-next-step>Next Step</button>
-                    </div>
-                </div>
-
-                <div class="space-y-3 hidden" data-wizard-panel="2">
-                    <h2 class="text-lg font-semibold text-[#1F2937]">Step 2: Choose Form Type</h2>
-                    <div class="space-y-2 text-sm text-gray-700">
-                        {% for radio in wizard_form.form_type %}
-                            <label class="flex items-start gap-3 rounded-xl border border-gray-200 px-3 py-3">
-                                {{ radio.tag }}
-                                <span>{{ radio.choice_label }}</span>
-                            </label>
-                        {% endfor %}
-                    </div>
-                    {% for error in wizard_form.form_type.errors %}<p class="mt-1 text-xs text-rotary-blue">{{ error }}</p>{% endfor %}
-                    <label for="{{ wizard_form.send_invites_now.id_for_label }}" class="mt-2 flex items-start gap-3 text-sm text-gray-700">
-                        {{ wizard_form.send_invites_now }}
-                        <span>After creation, send invitations immediately.</span>
-                    </label>
-                    <div class="flex gap-2 pt-2">
-                        <button type="button" class="btn-secondary w-full" data-prev-step>Back</button>
-                        <button type="button" class="btn-primary w-full" data-next-step>Next Step</button>
-                    </div>
-                </div>
-
-                <div class="space-y-3 hidden" data-wizard-panel="4">
-                    <h2 class="text-lg font-semibold text-[#1F2937]">Step 4: Review and Create</h2>
-                    <div class="rounded-xl border border-gray-200 bg-[#F8F9FB] p-4 text-sm text-gray-700">
-                        <p><strong>Title:</strong> <span data-review="title">-</span></p>
-                        <p><strong>Date:</strong> <span data-review="event_date">-</span></p>
-                        <p><strong>Venue:</strong> <span data-review="venue">-</span></p>
-                        <p><strong>Form:</strong> <span data-review="form_type">-</span></p>
-                    </div>
-                    <div class="flex gap-2 pt-2">
-                        <button type="button" class="btn-secondary w-full" data-prev-step>Back</button>
-                        <button class="btn-primary w-full py-3" data-loading>Create Event</button>
-                    </div>
-                </div>
-            </form>
-        </div>
-
-        <div class="space-y-4 hidden" id="step-3-area">
-            <div class="card" id="custom-fields-builder">
-                <div class="flex items-center justify-between">
-                    <h2 class="text-lg font-semibold text-[#1F2937]">Step 3: Add Custom Fields</h2>
-                    <button type="button" class="btn-secondary text-xs px-3 py-2 md:hidden" data-preview-toggle>Preview</button>
-                </div>
-                <p class="mt-1 text-xs text-gray-500">Email and Contact are default fields. Add extra fields below.</p>
-                <form method="post" class="mt-4 space-y-3" id="add-field-form">
-                    {% csrf_token %}
-                    <input type="hidden" name="action" value="add_field">
-                    {% for field in field_form %}
-                        <div {% if field.name == "options" %}id="field-options-wrap"{% endif %}>
+            <div class="space-y-3 transition-all duration-300" data-wizard-panel="1">
+                <h2 class="text-lg font-semibold text-[#1F2937]">Step 1: Event Information</h2>
+                {% for field in wizard_form %}
+                    {% if field.name != 'form_type' and field.name != 'send_invites_now' %}
+                        <div>
                             {% if field.field.widget.input_type == "checkbox" %}
                                 <label for="{{ field.id_for_label }}" class="flex items-start gap-3 text-sm text-gray-700">
                                     {{ field }}
@@ -100,51 +32,119 @@
                                 <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
                                 {{ field }}
                             {% endif %}
-                            {% if field.help_text %}<p class="mt-1 text-xs text-gray-500">{{ field.help_text }}</p>{% endif %}
                             {% for error in field.errors %}<p class="mt-1 text-xs text-rotary-blue">{{ error }}</p>{% endfor %}
                         </div>
-                    {% endfor %}
-                    <div class="flex gap-2 pt-2">
-                        <button type="button" class="btn-secondary w-full" data-prev-step>Back</button>
-                        <button class="btn-secondary w-full" data-loading data-step-lock="3">Add Field</button>
-                        <button type="button" class="btn-primary w-full" data-next-step>Next Step</button>
-                    </div>
-                </form>
+                    {% endif %}
+                {% endfor %}
+                <div class="pt-2">
+                    <button type="button" class="btn-primary w-full" data-next-step>Next Step</button>
+                </div>
             </div>
 
-            <div class="card" id="preview-panel">
-                <h3 class="text-lg font-semibold text-[#1F2937]">Live Preview</h3>
-                <div class="mt-3 space-y-3">
-                    <div>
-                        <label class="form-label">Email</label>
-                        <input class="input-field" disabled placeholder="email@example.com">
-                    </div>
-                    <div>
-                        <label class="form-label">Contact</label>
-                        <input class="input-field" disabled placeholder="+256...">
-                    </div>
-                    {% for field in fields %}
-                        <div>
-                            <label class="form-label">{{ field.label }}{% if field.required %} *{% endif %}</label>
-                            {% if field.field_type == 'textarea' %}
-                                <textarea class="input-field" rows="3" disabled placeholder="{{ field.label }}"></textarea>
-                            {% elif field.field_type == 'select' %}
-                                <select class="select-field" disabled><option>Select an option</option></select>
-                            {% elif field.field_type == 'checkbox' %}
-                                <label class="flex items-center gap-2 text-sm text-gray-600"><input type="checkbox" disabled> {{ field.label }}</label>
-                            {% elif field.field_type == 'date' %}
-                                <input type="date" class="input-field" disabled>
-                            {% elif field.field_type == 'number' %}
-                                <input type="number" class="input-field" disabled placeholder="0">
-                            {% else %}
-                                <input class="input-field" disabled placeholder="{{ field.label }}">
-                            {% endif %}
-                        </div>
+            <div class="space-y-3 hidden transition-all duration-300" data-wizard-panel="2">
+                <h2 class="text-lg font-semibold text-[#1F2937]">Step 2: Choose Form Type</h2>
+                <div class="space-y-2 text-sm text-gray-700">
+                    {% for radio in wizard_form.form_type %}
+                        <label class="flex items-start gap-3 rounded-xl border border-gray-200 px-3 py-3">
+                            {{ radio.tag }}
+                            <span>{{ radio.choice_label }}</span>
+                        </label>
                     {% endfor %}
-                    {% if not fields %}
-                        <p class="text-sm text-gray-500">No custom fields yet. Add one then continue.</p>
-                    {% endif %}
                 </div>
+                {% for error in wizard_form.form_type.errors %}<p class="mt-1 text-xs text-rotary-blue">{{ error }}</p>{% endfor %}
+                <label for="{{ wizard_form.send_invites_now.id_for_label }}" class="mt-2 flex items-start gap-3 text-sm text-gray-700">
+                    {{ wizard_form.send_invites_now }}
+                    <span>Send invitations immediately after creating event.</span>
+                </label>
+                <div class="flex gap-2 pt-2">
+                    <button type="button" class="btn-secondary w-full" data-prev-step>Back</button>
+                    <button type="button" class="btn-primary w-full" data-next-step>Next Step</button>
+                </div>
+            </div>
+
+            <div class="space-y-3 hidden transition-all duration-300" data-wizard-panel="4">
+                <h2 class="text-lg font-semibold text-[#1F2937]">Step 4: Review and Create</h2>
+                <div class="rounded-xl border border-gray-200 bg-[#F8F9FB] p-4 text-sm text-gray-700">
+                    <p><strong>Title:</strong> <span data-review="title">-</span></p>
+                    <p><strong>Date:</strong> <span data-review="event_date">-</span></p>
+                    <p><strong>Venue:</strong> <span data-review="venue">-</span></p>
+                    <p><strong>Form:</strong> <span data-review="form_type">-</span></p>
+                </div>
+                <div class="flex gap-2 pt-2">
+                    <button type="button" class="btn-secondary w-full" data-prev-step>Back</button>
+                    <button class="btn-primary w-full py-3" data-loading id="create-event-btn">Create Event</button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <div id="step-3-area" class="hidden grid gap-6 lg:grid-cols-2">
+        <div class="card">
+            <div class="flex items-center justify-between">
+                <h2 class="text-lg font-semibold text-[#1F2937]">Step 3: Design Custom Fields</h2>
+                <button type="button" class="btn-secondary text-xs px-3 py-2 md:hidden" data-preview-toggle>Preview</button>
+            </div>
+            <p class="mt-1 text-xs text-gray-500">Email and Contact are always included by default.</p>
+
+            <form method="post" class="mt-4 space-y-3" id="add-field-form">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="add_field">
+                {% for field in field_form %}
+                    <div {% if field.name == "options" %}id="field-options-wrap"{% endif %}>
+                        {% if field.field.widget.input_type == "checkbox" %}
+                            <label for="{{ field.id_for_label }}" class="flex items-start gap-3 text-sm text-gray-700">
+                                {{ field }}
+                                <span class="font-medium">{{ field.label }}</span>
+                            </label>
+                        {% else %}
+                            <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
+                            {{ field }}
+                        {% endif %}
+                        {% if field.help_text %}<p class="mt-1 text-xs text-gray-500">{{ field.help_text }}</p>{% endif %}
+                        {% for error in field.errors %}<p class="mt-1 text-xs text-rotary-blue">{{ error }}</p>{% endfor %}
+                    </div>
+                {% endfor %}
+
+                <div class="flex gap-2 pt-2">
+                    <button type="button" class="btn-secondary w-full" data-prev-step>Back</button>
+                    <button class="btn-secondary w-full" data-loading>Add Field</button>
+                    <button type="button" class="btn-primary w-full" data-next-step>Next Step</button>
+                </div>
+            </form>
+        </div>
+
+        <div class="card" id="preview-panel">
+            <h3 class="text-lg font-semibold text-[#1F2937]">Live Preview</h3>
+            <div class="mt-3 space-y-3">
+                <div>
+                    <label class="form-label">Email</label>
+                    <input class="input-field" disabled placeholder="email@example.com">
+                </div>
+                <div>
+                    <label class="form-label">Contact</label>
+                    <input class="input-field" disabled placeholder="+256...">
+                </div>
+                {% for field in fields %}
+                    <div>
+                        <label class="form-label">{{ field.label }}{% if field.required %} *{% endif %}</label>
+                        {% if field.field_type == 'textarea' %}
+                            <textarea class="input-field" rows="3" disabled placeholder="{{ field.label }}"></textarea>
+                        {% elif field.field_type == 'select' %}
+                            <select class="select-field" disabled><option>Select an option</option></select>
+                        {% elif field.field_type == 'checkbox' %}
+                            <label class="flex items-center gap-2 text-sm text-gray-600"><input type="checkbox" disabled> {{ field.label }}</label>
+                        {% elif field.field_type == 'date' %}
+                            <input type="date" class="input-field" disabled>
+                        {% elif field.field_type == 'number' %}
+                            <input type="number" class="input-field" disabled placeholder="0">
+                        {% else %}
+                            <input class="input-field" disabled placeholder="{{ field.label }}">
+                        {% endif %}
+                    </div>
+                {% endfor %}
+                {% if not fields %}
+                    <p class="text-sm text-gray-500">No custom fields yet.</p>
+                {% endif %}
             </div>
         </div>
     </div>
@@ -155,6 +155,7 @@
     const panels = document.querySelectorAll("[data-wizard-panel]");
     const stepIndicators = document.querySelectorAll("[data-step-indicator]");
     const step3Area = document.getElementById("step-3-area");
+    const mainCard = document.getElementById("wizard-main-card");
     const formTypeInputs = document.querySelectorAll("input[name='form_type']");
     const fieldType = document.getElementById("id_field_type");
     const optionsWrap = document.getElementById("field-options-wrap");
@@ -162,6 +163,12 @@
     const previewPanel = document.getElementById("preview-panel");
     const wizardForm = document.getElementById("wizard-main-form");
     const addFieldForm = document.getElementById("add-field-form");
+    const createEventBtn = document.getElementById("create-event-btn");
+
+    const persistIds = [
+        "id_title", "id_description", "id_venue", "id_event_date", "id_status",
+        "id_is_link_active", "id_send_invites_now"
+    ];
 
     let currentStep = Number(localStorage.getItem("eventWizardStep") || "1");
 
@@ -169,18 +176,25 @@
         return document.querySelector("input[name='form_type']:checked")?.value || "default";
     }
 
-    function maxStep() {
-        return selectedFormType() === "custom" ? 4 : 4;
+    function showWithAnimation(el) {
+        el.classList.remove("hidden");
+        el.classList.add("opacity-0", "translate-y-1");
+        requestAnimationFrame(() => {
+            el.classList.add("transition-all", "duration-300", "ease-out");
+            el.classList.remove("opacity-0", "translate-y-1");
+        });
     }
 
-    function validateCurrentStep() {
-        if (currentStep === 1) {
-            const requiredInputs = wizardForm.querySelectorAll("[data-wizard-panel='1'] input, [data-wizard-panel='1'] textarea, [data-wizard-panel='1'] select");
-            for (const input of requiredInputs) {
-                if (input.type !== "checkbox" && !input.checkValidity()) {
-                    input.reportValidity();
-                    return false;
-                }
+    function hidePanel(el) {
+        el.classList.add("hidden");
+    }
+
+    function validateStep1() {
+        const fields = wizardForm.querySelectorAll("[data-wizard-panel='1'] input, [data-wizard-panel='1'] textarea, [data-wizard-panel='1'] select");
+        for (const input of fields) {
+            if (input.type !== "checkbox" && !input.checkValidity()) {
+                input.reportValidity();
+                return false;
             }
         }
         return true;
@@ -199,21 +213,7 @@
         });
     }
 
-    function render() {
-        panels.forEach(p => p.classList.add("hidden"));
-        if (currentStep === 1) document.querySelector("[data-wizard-panel='1']")?.classList.remove("hidden");
-        if (currentStep === 2) document.querySelector("[data-wizard-panel='2']")?.classList.remove("hidden");
-        if (currentStep === 4) {
-            document.querySelector("[data-wizard-panel='4']")?.classList.remove("hidden");
-            updateReview();
-        }
-
-        if (selectedFormType() === "custom" && currentStep === 3) {
-            step3Area.classList.remove("hidden");
-        } else {
-            step3Area.classList.add("hidden");
-        }
-
+    function paintIndicators() {
         stepIndicators.forEach((item) => {
             const step = Number(item.dataset.stepIndicator);
             item.classList.remove("border-rotary-blue", "bg-rotary-blue", "text-white", "border-rotary-gold", "text-rotary-blue");
@@ -226,47 +226,121 @@
                 item.classList.add("border-rotary-gold", "text-rotary-blue");
             }
         });
+    }
 
+    function render() {
+        if (currentStep === 3 && selectedFormType() !== "custom") {
+            currentStep = 2;
+        }
+
+        panels.forEach(hidePanel);
+        hidePanel(step3Area);
+        hidePanel(mainCard);
+
+        if (currentStep === 3) {
+            showWithAnimation(step3Area);
+        } else {
+            showWithAnimation(mainCard);
+            if (currentStep === 1) showWithAnimation(document.querySelector("[data-wizard-panel='1']"));
+            if (currentStep === 2) showWithAnimation(document.querySelector("[data-wizard-panel='2']"));
+            if (currentStep === 4) {
+                updateReview();
+                showWithAnimation(document.querySelector("[data-wizard-panel='4']"));
+            }
+        }
+
+        paintIndicators();
         localStorage.setItem("eventWizardStep", String(currentStep));
     }
 
     function goNext() {
-        if (!validateCurrentStep()) return;
-        if (currentStep === 2 && selectedFormType() === "default") {
+        if (currentStep === 1) {
+            if (!validateStep1()) return;
+            currentStep = 2;
+        } else if (currentStep === 2) {
+            currentStep = selectedFormType() === "custom" ? 3 : 4;
+        } else if (currentStep === 3) {
             currentStep = 4;
-        } else if (currentStep < maxStep()) {
-            currentStep += 1;
         }
         render();
     }
 
     function goPrev() {
-        if (currentStep === 4 && selectedFormType() === "default") {
-            currentStep = 2;
-        } else if (currentStep > 1) {
-            currentStep -= 1;
-        }
+        if (currentStep === 4) currentStep = selectedFormType() === "custom" ? 3 : 2;
+        else if (currentStep === 3) currentStep = 2;
+        else if (currentStep === 2) currentStep = 1;
         render();
     }
 
-    document.querySelectorAll("[data-next-step]").forEach(btn => btn.addEventListener("click", goNext));
-    document.querySelectorAll("[data-prev-step]").forEach(btn => btn.addEventListener("click", goPrev));
-    formTypeInputs.forEach(i => i.addEventListener("change", render));
+    function persistWizardData() {
+        persistIds.forEach((id) => {
+            const el = document.getElementById(id);
+            if (!el) return;
+            if (el.type === "checkbox") {
+                localStorage.setItem(`wiz_${id}`, el.checked ? "1" : "0");
+            } else {
+                localStorage.setItem(`wiz_${id}`, el.value || "");
+            }
+            el.addEventListener("input", () => {
+                if (el.type === "checkbox") localStorage.setItem(`wiz_${id}`, el.checked ? "1" : "0");
+                else localStorage.setItem(`wiz_${id}`, el.value || "");
+            });
+            el.addEventListener("change", () => {
+                if (el.type === "checkbox") localStorage.setItem(`wiz_${id}`, el.checked ? "1" : "0");
+                else localStorage.setItem(`wiz_${id}`, el.value || "");
+            });
+        });
+
+        formTypeInputs.forEach((r) => {
+            if (r.checked) localStorage.setItem("wiz_form_type", r.value);
+            r.addEventListener("change", () => localStorage.setItem("wiz_form_type", r.value));
+        });
+    }
+
+    function restoreWizardData() {
+        persistIds.forEach((id) => {
+            const el = document.getElementById(id);
+            if (!el) return;
+            const stored = localStorage.getItem(`wiz_${id}`);
+            if (stored === null) return;
+            if (el.type === "checkbox") el.checked = stored === "1";
+            else el.value = stored;
+        });
+        const storedType = localStorage.getItem("wiz_form_type");
+        if (storedType) {
+            const radio = document.querySelector(`input[name='form_type'][value='${storedType}']`);
+            if (radio) radio.checked = true;
+        }
+    }
+
+    function clearWizardData() {
+        persistIds.forEach((id) => localStorage.removeItem(`wiz_${id}`));
+        localStorage.removeItem("wiz_form_type");
+        localStorage.removeItem("eventWizardStep");
+    }
 
     function updateOptionsVisibility() {
         if (!fieldType || !optionsWrap) return;
         optionsWrap.classList.toggle("hidden", fieldType.value !== "select");
     }
 
+    document.querySelectorAll("[data-next-step]").forEach(btn => btn.addEventListener("click", goNext));
+    document.querySelectorAll("[data-prev-step]").forEach(btn => btn.addEventListener("click", goPrev));
+    formTypeInputs.forEach(i => i.addEventListener("change", render));
+    fieldType?.addEventListener("change", updateOptionsVisibility);
+    previewToggle?.addEventListener("click", () => previewPanel.classList.toggle("hidden"));
+
     addFieldForm?.addEventListener("submit", () => {
         localStorage.setItem("eventWizardStep", "3");
     });
+    createEventBtn?.addEventListener("click", () => {
+        clearWizardData();
+    });
 
-    previewToggle?.addEventListener("click", () => previewPanel.classList.toggle("hidden"));
-    fieldType?.addEventListener("change", updateOptionsVisibility);
-
-    if (currentStep < 1 || currentStep > 4) currentStep = 1;
+    restoreWizardData();
+    persistWizardData();
     updateOptionsVisibility();
+    if (currentStep < 1 || currentStep > 4) currentStep = 1;
     render();
 })();
 </script>

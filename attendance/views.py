@@ -1,5 +1,8 @@
 from io import BytesIO
 
+from datetime import date, datetime
+from decimal import Decimal
+
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -37,14 +40,12 @@ from .utils import build_qr_svg
 
 def _consenting_emails():
     attendee_emails = set(
-        Attendee.objects.filter(receive_future_emails=True)
-        .exclude(email__isnull=True)
+        Attendee.objects.exclude(email__isnull=True)
         .exclude(email="")
         .values_list("email", flat=True)
     )
     custom_form_emails = set(
-        FormSubmission.objects.filter(receive_future_emails=True)
-        .exclude(email__isnull=True)
+        FormSubmission.objects.exclude(email__isnull=True)
         .exclude(email="")
         .values_list("email", flat=True)
     )
@@ -66,6 +67,58 @@ def _build_unique_key(raw_label: str, existing_keys):
         candidate = f"{base}_{i}"
         i += 1
     return candidate
+
+
+def _resolve_custom_form_event(custom_form: FormTemplate, value: str | None):
+    if value:
+        explicit = custom_form.events.filter(public_id=value).first()
+        if explicit:
+            return explicit
+
+    now = timezone.now()
+    upcoming = (
+        custom_form.events.filter(is_link_active=True, event_date__gte=now)
+        .order_by("event_date")
+        .first()
+    )
+    if upcoming:
+        return upcoming
+    return custom_form.events.filter(is_link_active=True).order_by("-event_date").first()
+
+
+def _custom_form_autofill_payload(custom_form: FormTemplate, attendee: Attendee):
+    latest_submission = (
+        custom_form.submissions.filter(attendee=attendee).order_by("-submitted_at").first()
+    )
+    payload = dict(latest_submission.payload) if latest_submission else {}
+    enriched = {
+        "full_name": attendee.full_name or "",
+        "name": attendee.full_name or "",
+        "rotary_club": attendee.rotary_club or "",
+        "rotaract_club": attendee.rotaract_club or "",
+        "additional_comments": attendee.additional_comments or "",
+        "communication_preference": attendee.communication_preference or "",
+        "category": attendee.category or "",
+    }
+    for key, value in enriched.items():
+        payload.setdefault(key, value)
+    return _json_safe_payload(payload)
+
+
+def _json_safe_value(value):
+    if isinstance(value, Decimal):
+        return str(value)
+    if isinstance(value, (datetime, date)):
+        return value.isoformat()
+    if isinstance(value, dict):
+        return {k: _json_safe_value(v) for k, v in value.items()}
+    if isinstance(value, (list, tuple)):
+        return [_json_safe_value(v) for v in value]
+    return value
+
+
+def _json_safe_payload(payload: dict):
+    return {k: _json_safe_value(v) for k, v in payload.items()}
 
 
 class HomeView(TemplateView):
@@ -155,7 +208,11 @@ class EventWizardView(LoginRequiredMixin, TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["wizard_form"] = kwargs.get("wizard_form") or EventWizardForm()
+        wizard_form = kwargs.get("wizard_form")
+        if wizard_form is None:
+            has_custom_fields = len(self.request.session.get("event_wizard_fields", [])) > 0
+            wizard_form = EventWizardForm(initial={"form_type": "custom" if has_custom_fields else "default"})
+        context["wizard_form"] = wizard_form
         context["field_form"] = kwargs.get("field_form") or CustomFormFieldWizardForm(
             initial={"order": (len(self.request.session.get("event_wizard_fields", [])) + 1)}
         )
@@ -172,7 +229,7 @@ class EventWizardView(LoginRequiredMixin, TemplateView):
 
         if action == "add_field":
             field_form = CustomFormFieldWizardForm(request.POST)
-            wizard_form = EventWizardForm(request.POST)
+            wizard_form = EventWizardForm(initial={"form_type": "custom"})
             if field_form.is_valid():
                 fields = request.session.get("event_wizard_fields", [])
                 item = field_form.cleaned_data.copy()
@@ -213,7 +270,7 @@ class EventWizardView(LoginRequiredMixin, TemplateView):
             custom_template = FormTemplate.objects.create(
                 title=f"{data['title']} Registration",
                 description=data.get("description", ""),
-                is_active=False,
+                is_active=data["is_link_active"],
                 created_by=request.user,
             )
             for item in fields:
@@ -280,9 +337,6 @@ def event_send_invites_view(request, public_id):
     event = get_object_or_404(Event, public_id=public_id)
     if not event.is_link_active:
         messages.warning(request, "Activate the event link before sending invitations.")
-        return redirect("attendance:event-detail", public_id=event.public_id)
-    if event.form_template_id and not event.form_template.is_active:
-        messages.warning(request, "Activate the custom form before sending invitations.")
         return redirect("attendance:event-detail", public_id=event.public_id)
     recipients = _consenting_emails()
     event_url = _absolute_public_url(event.get_public_url())
@@ -443,8 +497,22 @@ def custom_form_send_invites_view(request, public_id):
 
 def custom_form_public_view(request, public_id):
     custom_form = get_object_or_404(FormTemplate, public_id=public_id)
-    if not custom_form.is_active and not request.user.is_authenticated:
-        raise Http404("This form is currently inactive.")
+    linked_active_event_exists = custom_form.events.filter(is_link_active=True).exists()
+    if not custom_form.is_active and not linked_active_event_exists and not request.user.is_authenticated:
+        return render(
+            request,
+            "attendance/public/link_inactive.html",
+            {
+                "page_title": "Form Unavailable",
+                "headline": "This registration page is currently unavailable.",
+                "message": "Please check back later or contact the organizer for an updated link.",
+            },
+            status=200,
+        )
+    selected_event = _resolve_custom_form_event(
+        custom_form,
+        request.POST.get("event_public_id") or request.GET.get("event"),
+    )
 
     if request.method == "POST":
         runtime_form = build_custom_form_runtime(custom_form, request.POST)
@@ -452,8 +520,7 @@ def custom_form_public_view(request, public_id):
             data = runtime_form.cleaned_data
             email = (data.get("email") or "").strip().lower()
             phone = (data.get("phone") or "").strip()
-            receive_future_emails = bool(data.get("receive_future_emails"))
-            payload = {k: v for k, v in data.items() if k not in {"email", "phone", "receive_future_emails"}}
+            payload = _json_safe_payload({k: v for k, v in data.items() if k not in {"email", "phone"}})
 
             attendee_by_email = Attendee.objects.filter(email__iexact=email).first() if email else None
             attendee_by_phone = Attendee.objects.filter(phone=phone).first() if phone else None
@@ -475,8 +542,7 @@ def custom_form_public_view(request, public_id):
                     attendee.email = email
                 if phone:
                     attendee.phone = phone
-                if receive_future_emails and attendee.communication_preference in {"email", "both"}:
-                    attendee.receive_future_emails = True
+                attendee.receive_future_emails = True
                 attendee.save()
 
                 FormSubmission.objects.create(
@@ -485,13 +551,19 @@ def custom_form_public_view(request, public_id):
                     email=email or None,
                     phone=phone or None,
                     payload=payload,
-                    receive_future_emails=receive_future_emails,
+                    receive_future_emails=True,
                 )
+                if selected_event:
+                    Attendance.objects.create(
+                        event=selected_event,
+                        attendee=attendee,
+                        source="link",
+                    )
                 send_custom_form_confirmation(attendee.email, custom_form)
                 return render(
                     request,
                     "attendance/public/custom_form_success.html",
-                    {"custom_form": custom_form, "attendee": attendee},
+                    {"custom_form": custom_form, "attendee": attendee, "event": selected_event},
                 )
     else:
         runtime_form = build_custom_form_runtime(custom_form)
@@ -499,7 +571,7 @@ def custom_form_public_view(request, public_id):
     return render(
         request,
         "attendance/public/custom_form_public.html",
-        {"custom_form": custom_form, "runtime_form": runtime_form},
+        {"custom_form": custom_form, "runtime_form": runtime_form, "event": selected_event},
     )
 
 
@@ -522,10 +594,21 @@ class BroadcastCreateView(LoginRequiredMixin, CreateView):
 
 def event_attendance_view(request, public_id):
     event = get_object_or_404(Event, public_id=public_id)
+    if not event.is_link_active and not request.user.is_authenticated:
+        return render(
+            request,
+            "attendance/public/link_inactive.html",
+            {
+                "page_title": "Registration Closed",
+                "headline": "This event registration link is currently inactive.",
+                "message": "The organizer may reactivate it soon. Please check back later.",
+                "event": event,
+            },
+            status=200,
+        )
     if event.form_template_id:
-        return redirect("attendance:custom-form-public", public_id=event.form_template.public_id)
-    if not event.is_link_active:
-        raise Http404("This event link is currently inactive.")
+        custom_url = reverse("attendance:custom-form-public", kwargs={"public_id": event.form_template.public_id})
+        return redirect(f"{custom_url}?event={event.public_id}")
     if event.status != "open" and request.method == "POST":
         raise Http404("This event is not open for confirmation.")
 
@@ -591,6 +674,46 @@ class EventLookupView(View):
         )
 
 
+class CustomFormLookupView(View):
+    http_method_names = ["post"]
+
+    def post(self, request, public_id):
+        custom_form = get_object_or_404(FormTemplate, public_id=public_id)
+        email = (request.POST.get("email") or "").strip().lower()
+        phone = (request.POST.get("phone") or "").strip()
+        if not email and not phone:
+            return JsonResponse({"found": False})
+
+        attendee_by_email = Attendee.objects.filter(email__iexact=email).first() if email else None
+        attendee_by_phone = Attendee.objects.filter(phone=phone).first() if phone else None
+
+        if attendee_by_email and attendee_by_phone and attendee_by_email.pk != attendee_by_phone.pk:
+            return JsonResponse(
+                {
+                    "found": False,
+                    "conflict": True,
+                    "message": "Email and contact belong to different records.",
+                },
+                status=409,
+            )
+
+        attendee = attendee_by_email or attendee_by_phone
+        if not attendee:
+            return JsonResponse({"found": False})
+
+        payload = _custom_form_autofill_payload(custom_form, attendee)
+        return JsonResponse(
+            {
+                "found": True,
+                "attendee": {
+                    "email": attendee.email or "",
+                    "phone": attendee.phone or "",
+                    "payload": payload,
+                },
+            }
+        )
+
+
 @require_GET
 def event_qr_download_view(request, public_id):
     from reportlab.graphics import renderPDF
@@ -644,3 +767,15 @@ def event_qr_download_view(request, public_id):
     response = HttpResponse(buffer.read(), content_type="application/pdf")
     response["Content-Disposition"] = f'attachment; filename="event-{event.public_id}.pdf"'
     return response
+
+
+def custom_permission_denied_view(request, exception):
+    return render(request, "errors/403.html", status=403)
+
+
+def custom_page_not_found_view(request, exception):
+    return render(request, "errors/404.html", status=404)
+
+
+def custom_server_error_view(request):
+    return render(request, "errors/500.html", status=500)

@@ -85,13 +85,6 @@
                     <label for="{{ form.additional_comments.id_for_label }}" class="form-label">Additional Comments (Optional)</label>
                     {{ form.additional_comments }}
                 </div>
-                <div class="sm:col-span-2 rounded-xl border border-gray-200 bg-[#F8F9FB] px-4 py-3">
-                    <label for="{{ form.receive_future_emails.id_for_label }}" class="flex items-start gap-3 text-sm text-gray-700">
-                        {{ form.receive_future_emails }}
-                        <span>I want to receive emails about future meetings and communications from Kampala Early Bird - Rotary Club.</span>
-                    </label>
-                    {% for error in form.receive_future_emails.errors %}<p class="mt-1 text-xs text-rotary-blue">{{ error }}</p>{% endfor %}
-                </div>
             </div>
 
             <button {% if event.status != "open" %}disabled{% endif %}
@@ -139,10 +132,6 @@
                     input.value = data[name];
                 }
             });
-            const receiveUpdates = document.getElementById("id_receive_future_emails");
-            if (receiveUpdates && data.receive_future_emails !== undefined) {
-                receiveUpdates.checked = Boolean(data.receive_future_emails);
-            }
         }
 
         async function runLookup() {

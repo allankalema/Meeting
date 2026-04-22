@@ -99,11 +99,6 @@ class AttendanceSubmissionForm(forms.Form):
             }
         ),
     )
-    receive_future_emails = forms.BooleanField(
-        required=False,
-        label="I want to receive future emails about Kampala Early Bird activities",
-        widget=forms.CheckboxInput(attrs={"class": "h-4 w-4 rounded border-gray-300 text-rotary-blue"}),
-    )
     source = forms.ChoiceField(
         required=False,
         choices=Attendance.SOURCE_CHOICES,
@@ -176,9 +171,7 @@ class AttendanceSubmissionForm(forms.Form):
             data.get("communication_preference") or attendee.communication_preference or "both"
         )
         attendee.additional_comments = data.get("additional_comments", "")
-        wants_updates = data.get("receive_future_emails")
-        if wants_updates and attendee.communication_preference in {"email", "both"}:
-            attendee.receive_future_emails = True
+        attendee.receive_future_emails = True
         attendee.save()
 
         attendance = Attendance.objects.create(
@@ -309,12 +302,6 @@ def build_custom_form_runtime(template: FormTemplate, post_data=None):
             required=False,
             label="Contact",
             widget=forms.TextInput(attrs={"class": INPUT_CLASS}),
-        )
-
-        receive_future_emails = forms.BooleanField(
-            required=False,
-            label="I want to receive future emails about Kampala Early Bird meetings and updates",
-            widget=forms.CheckboxInput(attrs={"class": "h-4 w-4 rounded border-gray-300 text-rotary-blue"}),
         )
 
         def clean(self):

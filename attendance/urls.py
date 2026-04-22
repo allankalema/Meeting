@@ -12,6 +12,7 @@ from .views import (
     EventDetailView,
     EventListView,
     EventLookupView,
+    CustomFormLookupView,
     EventWizardView,
     HomeView,
     UserLoginView,
@@ -64,4 +65,5 @@ urlpatterns = [
     path("e/<uuid:public_id>/", event_attendance_view, name="event-public"),
     path("e/<uuid:public_id>/lookup/", EventLookupView.as_view(), name="event-lookup"),
     path("f/<uuid:public_id>/", custom_form_public_view, name="custom-form-public"),
+    path("f/<uuid:public_id>/lookup/", CustomFormLookupView.as_view(), name="custom-form-lookup"),
 ]
